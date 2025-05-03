@@ -6,7 +6,7 @@ using Kogane;
 
 public class ApplicationReloader : MonoBehaviour
 {
-    [SerializeField] private Button batteryButton;
-    private void Start() {batteryButton.onClick.AddListener(Reload);}
+    [SerializeField] private Button reloadButton;
+    private void Start() {reloadButton.onClick.AddListener(Reload);}
     private void Reload() {ApplicationRestarter.Restart();}
 }

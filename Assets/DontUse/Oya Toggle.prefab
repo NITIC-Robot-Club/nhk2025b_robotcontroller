@@ -530,14 +530,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 5769963688132321268}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2435b67a95853a34cb097344624ba11a, type: 3}
+  m_Script: {fileID: 11500000, guid: dba22f09a802661d697bbd781484c984, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  backgroundGraphic: {fileID: 8411547512411122966}
-  onColor: {r: 0.39215687, g: 0.8392157, b: 0.40392157, a: 1}
-  offColor: {r: 0.6509804, g: 0.63529414, b: 0.63529414, a: 1}
-  tipRect: {fileID: 2275316908348921476}
-  button: {fileID: 2245638371653884965}
+  backgroundGraphic: {fileID: 0}
+  onColor: {r: 0, g: 0, b: 0, a: 0}
+  offColor: {r: 0, g: 0, b: 0, a: 0}
+  tipRect: {fileID: 0}
+  button: {fileID: 0}
 --- !u!114 &2245638371653884965
 MonoBehaviour:
   m_ObjectHideFlags: 0

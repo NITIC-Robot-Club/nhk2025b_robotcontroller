@@ -29,13 +29,6 @@ public class IOSButton : MonoBehaviour
     }
     void OnChange(){
         isOn = !isOn;
-        /*
-        if (isOn){
-            SetOn();
-        }else{
-            SetOff();
-        }
-        */
     }
     public void Set(){
         if (isOn){
