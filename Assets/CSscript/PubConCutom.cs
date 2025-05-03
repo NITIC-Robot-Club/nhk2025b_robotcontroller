@@ -19,9 +19,9 @@ public class PubConCutom : MonoBehaviour
     [System.NonSerialized] public Queue<string> queue = new Queue<string>();
     [System.NonSerialized] public Queue<twist> twistmsgs = new Queue<twist>();
     private IEnumerator routine;
-    [SerializeField] private TMP_Text tmp;
-    [SerializeField] private Button upButton;
-    [SerializeField] private Button downButton;
+    //[SerializeField] private TMP_Text tmp;
+    //[SerializeField] private Button upButton;
+    //[SerializeField] private Button downButton;
     [SerializeField] private string topic_name = "/my_topic_name";
     [SerializeField] private float pub_hz = 0.05f;
     private bool is_main;
@@ -29,19 +29,19 @@ public class PubConCutom : MonoBehaviour
     {
         TryGetComponent(out ros2Unity);
         routine = PublishTwistring();
-        upButton.onClick.AddListener(num_p);
-        downButton.onClick.AddListener(num_m);
+        //upButton.onClick.AddListener(num_p);
+        //downButton.onClick.AddListener(num_m);
     }
-    void num_p(){
+    /*void num_p(){
         if(target_num < 100)target_num++;
     }
     void num_m(){
         if(target_num > 0)target_num--;
-    }
+    }*/
     void Update()
     {
         is_main = uiope.GetComponent<PanelContoroller>().Getismain();
-        tmp.SetText(target_num.ToString());
+        //tmp.SetText(target_num.ToString());
         if(ros2Unity.Ok()){
             if(ros2Node == null){
                 ros2Node = ros2Unity.CreateNode("UnityNode");
