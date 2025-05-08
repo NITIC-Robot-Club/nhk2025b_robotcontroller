@@ -15,11 +15,11 @@ public class Data {
 public class DataList : MonoBehaviour
 {
     [SerializeField] List<Data> data;
-    private PubConCutom pubcon;
+    private UnityPublisher pubcon;
     // Start is called before the first frame update
     void Start(){
         Debug.Log(data.Count);
-        pubcon = GameObject.Find("Pubcontoroller").GetComponent<PubConCutom>();
+        pubcon = GameObject.Find("Pubcontoroller").GetComponent<UnityPublisher>();
         
         for(int count = 0;count < data.Count;count++){
             Button button1 = data[count].button;

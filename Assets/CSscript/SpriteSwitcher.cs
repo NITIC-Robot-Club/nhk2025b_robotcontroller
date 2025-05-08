@@ -3,17 +3,25 @@ using UnityEngine.UI;
 
 public class SpriteSwitcher : MonoBehaviour
 {
-    [SerializeField] private Image image;
     [SerializeField] private Sprite sprite1;
     [SerializeField] private Sprite sprite2;
-    [SerializeField] private IOSButton toggle;
+    [SerializeField] private Image buttonImage;
+    [SerializeField] private Button button;
+    private bool isOn = false;
 
-    void Start() {
-        UpdateSprite(toggle.GetisOn());
-        toggle.button.onClick.AddListener(() => UpdateSprite(toggle.GetisOn()));
+    void Start()
+    {
+        button.onClick.AddListener(UpdateSprite);
     }
 
-    private void UpdateSprite(bool isOn) {
-        image.sprite = isOn ? sprite2 : sprite1;
+    private void UpdateSprite()
+    {
+        isOn = !isOn;
+        buttonImage.sprite = isOn ? sprite2 : sprite1;
+    }
+
+    public bool GetisOn()
+    {
+        return isOn;
     }
 }

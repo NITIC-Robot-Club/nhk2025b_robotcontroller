@@ -34,6 +34,9 @@ namespace Udonba
         [SerializeField, Tooltip("特定の文字列を含むログは表示しない")]
         private string[] _ignorePhrases = new string[] { };
 
+        [SerializeField, Tooltip("表示可能な最大行数")]
+        private int _maxVisibleLines = 10;
+
         private void Awake()
         {
             if (TmpText == null)
@@ -41,7 +44,7 @@ namespace Udonba
                 this.enabled = false;
                 throw new NullReferenceException("No text component found.");
             }
-
+            
             Application.logMessageReceived -= HandleLog;
             Application.logMessageReceived += HandleLog;
 
@@ -64,7 +67,6 @@ namespace Udonba
         {
             _builder.Clear();
 
-            // 除外文字列を含むか確認
             if (0 < _ignorePhrases.Length)
             {
                 for (int i = 0; i < _ignorePhrases.Length; i++)
@@ -76,13 +78,11 @@ namespace Udonba
                 }
             }
 
-            // タイムスタンプの付加
             if (_useTimeStamp)
             {
                 _builder.Append($"[{DateTime.Now.ToLongTimeString()}:{DateTime.Now.Millisecond:D3}] ");
             }
 
-            // 色付け
             if (_coloredByLogType)
             {
                 switch (logType)
@@ -103,11 +103,7 @@ namespace Udonba
             _builder.AppendLine(logText);
             TmpText.text += _builder.ToString();
 
-            // Textの範囲内に収める
-            if (TmpText.overflowMode == TextOverflowModes.Overflow)
-            {
-                AdjustText(TmpText);
-            }
+            AdjustTextToMaxLines();
         }
 
         /// <summary>
@@ -122,66 +118,28 @@ namespace Udonba
         }
 
         /// <summary>
-        /// Textの範囲内に文字列を収める
+        /// 最大行数を超えた場合に文字列を調整
         /// </summary>
-        /// <param name="tmpText"></param>
-        private void AdjustText(TMP_Text tmpText)
+        private void AdjustTextToMaxLines()
         {
-            tmpText.ForceMeshUpdate();
+            TmpText.ForceMeshUpdate();
 
-            if (tmpText.firstOverflowCharacterIndex == -1)
-            {
-                return;
-            }
+            int currentLineCount = TmpText.textInfo.lineCount;
 
-            // はみ出した行インデックス
-            int overflowLineIdx = -1;
-            for (int i = 0; i < tmpText.textInfo.lineCount; i++)
+            if (currentLineCount > _maxVisibleLines)
             {
-                if (tmpText.firstOverflowCharacterIndex == tmpText.textInfo.lineInfo[i].firstCharacterIndex)
+                int overflowLines = currentLineCount - _maxVisibleLines;
+
+                int deleteLength = 0;
+                int foundIdx = 0;
+                for (int i = 0; i < overflowLines; i++)
                 {
-                    overflowLineIdx = i;
-                    break;
+                    foundIdx = TmpText.text.IndexOf('\n', foundIdx + 1);
                 }
+                deleteLength = foundIdx + 1;
+
+                TmpText.text = TmpText.text.Remove(0, deleteLength);
             }
-            if (overflowLineIdx == -1)
-            {
-                return;
-            }
-
-            // はみ出したログ数
-            int overflowLogCount = 0;
-            for (int i = overflowLineIdx; i < tmpText.textInfo.lineCount; i++)
-            {
-                for (int j = tmpText.textInfo.lineInfo[i].firstCharacterIndex; j <= tmpText.textInfo.lineInfo[i].lastCharacterIndex; j++)
-                {
-                    var c = tmpText.textInfo.characterInfo[j].character;
-                    if (c == '\n')
-                    {
-                        overflowLogCount++;
-                        break;
-                    }
-
-                    if (i == tmpText.textInfo.lineCount - 1 && j == tmpText.textInfo.lineInfo[i].lastCharacterIndex)
-                    {
-                        overflowLogCount++;
-                        break;
-                    }
-                }
-            }
-
-            // 削除したい文字列の長さ
-            int deleteLength = 0;
-            int foundIdx = 0;
-            for (int i = 0; i < overflowLogCount; i++)
-            {
-                foundIdx = tmpText.text.IndexOf('\n', foundIdx + 1);
-            }
-            deleteLength = foundIdx + 1; // 末尾の改行コードも消す
-
-
-            // 削除
-            tmpText.text = tmpText.text.Remove(0, deleteLength);
         }
     }
 }
