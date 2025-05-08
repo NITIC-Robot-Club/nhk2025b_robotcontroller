@@ -35,8 +35,7 @@ internal class ROS2ForUnity
     public enum Platform
     {
         Windows,
-        Linux,
-        Android
+        Linux
     }
     
     public static Platform GetOS()
@@ -48,10 +47,6 @@ internal class ROS2ForUnity
         else if (Application.platform == RuntimePlatform.WindowsEditor || Application.platform == RuntimePlatform.WindowsPlayer)
         {
             return Platform.Windows;
-        }
-        else if (Application.platform == RuntimePlatform.Android)
-        {
-            return Platform.Android;
         }
         throw new System.NotSupportedException("Only Linux and Windows are supported");
     }
@@ -68,10 +63,8 @@ internal class ROS2ForUnity
                 return "Linux";
             case Platform.Windows:
                 return "Windows";
-            case Platform.Android:
-                return "Android";
             default:
-                throw new System.NotSupportedException("Only Linux, Android and Windows  are supported");
+                throw new System.NotSupportedException("Only Linux and Windows are supported");
         }
     }
     
@@ -124,11 +117,6 @@ internal class ROS2ForUnity
            pluginPath = pluginPath.Replace("/", "\\");
         }
 
-        if (GetOS() == Platform.Android)
-        {
-            // not working
-        }
-
         return pluginPath;
     }
 
@@ -178,7 +166,6 @@ internal class ROS2ForUnity
     /// </summary>
     public void CheckIntegrity()
     {
-#if !UNITY_ANDROID
         string ros2SourcedCodename = GetROSVersionSourced();
         string ros2FromRos2csMetadata = GetMetadataValue(ros2csMetadata, "/ros2cs/ros2");
         string ros2FromRos4UMetadata = GetMetadataValue(ros2ForUnityMetadata, "/ros2_for_unity/ros2");
@@ -203,7 +190,6 @@ internal class ROS2ForUnity
                 "Plugin might not work correctly."
             );
         }
-#endif
     }
 
     public string GetROSVersionSourced()
@@ -280,33 +266,8 @@ internal class ROS2ForUnity
         char separator = Path.DirectorySeparatorChar;
         try
         {
-#if UNITY_ANDROID
-            ros2csMetadata.LoadXml(
-                "<?xml version=\"1.0\" ?>\n"+
-                "<ros2cs>\n"+
-                "   <ros2>humble</ros2>\n"+
-                "   <version>\n"+
-                "      <sha>a79b8d47ffc4631b7a4fcbbf11d3238894e07a23</sha>\n"+
-                "      <desc>1.2.1</desc>\n"+
-                "      <date>2023-01-26 11:29:02 +0100</date>\n"+
-                "   </version>\n"+
-                "   <standalone>0</standalone>\n"+
-                "</ros2cs>\n");
-            
-            ros2ForUnityMetadata.LoadXml(
-                "<?xml version=\"1.0\" ?>"+
-                "<ros2_for_unity>"+
-                "   <ros2>humble</ros2>"+
-                "   <version>"+
-                "      <sha>43a53c339bb3151765c56c7e694fac4c5ce1ff82</sha>"+
-                "      <desc>1.2.0-3-g43a53c3</desc>"+
-                "      <date>2023-03-08 22:06:22 +0900</date>"+
-                "   </version>"+
-                "</ros2_for_unity>");
-#else
             ros2csMetadata.Load(GetPluginPath() + separator + "metadata_ros2cs.xml");
             ros2ForUnityMetadata.Load(GetRos2ForUnityPath() + separator + "metadata_ros2_for_unity.xml");
-#endif
         }
         catch (System.IO.FileNotFoundException)
         {
@@ -357,7 +318,6 @@ internal class ROS2ForUnity
 #if UNITY_EDITOR
         EditorApplication.playModeStateChanged += this.EditorPlayStateChanged;
         EditorApplication.quitting += this.DestroyROS2ForUnity;
-        Debug.Log("editor");
 #endif
         isInitialized = true;
     }
@@ -385,7 +345,6 @@ internal class ROS2ForUnity
 
     internal void DestroyROS2ForUnity()
     {
-        Debug.Log("shut ready");
         if (isInitialized)
         {
             Debug.Log("Shutting down Ros2 For Unity");
@@ -396,8 +355,7 @@ internal class ROS2ForUnity
 
     ~ROS2ForUnity()
     {
-        Debug.Log("naminami");
-        //DestroyROS2ForUnity();
+        DestroyROS2ForUnity();
     }
 
 #if UNITY_EDITOR
@@ -405,7 +363,6 @@ internal class ROS2ForUnity
     {
         if (change == PlayModeStateChange.ExitingPlayMode)
         {
-            Debug.Log("change");
             DestroyROS2ForUnity();
         }
     }

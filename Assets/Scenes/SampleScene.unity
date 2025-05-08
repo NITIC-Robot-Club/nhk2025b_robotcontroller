@@ -2457,7 +2457,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cmdTopicName: /cmd
-  mapTopicName: /unitymap
+  mapTopicName: /behavior/map
   mapImage: {fileID: 2059423685}
 --- !u!114 &1806372284
 MonoBehaviour:
@@ -2473,8 +2473,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   controllerActions: {fileID: 1806372275}
   uiope: {fileID: 1964926389}
-  twistringTopicName: /Twistring_topic_name
-  twiststampedTopicName: /TwistStamped_topic_name
+  twistringTopicName: /cmd
+  twiststampedTopicName: /cmd_vel
   pub_hz: 0.05
   XYJoy: {fileID: 1327206532}
   ZJoy: {fileID: 1715224645}
