@@ -6,30 +6,22 @@ using UnityEngine.UI;
 
 public class PanelContoroller : MonoBehaviour
 {
-    [SerializeField] GameObject conPanel;      //メインカメラ格納用
+    [SerializeField] GameObject conPanel;
     [SerializeField] GameObject mainPanel;
+    [SerializeField] GameObject menuPanel;
     [SerializeField] Button toCon;
-    [SerializeField] Button toMain;
-    [SerializeField] private GameObject cmdpanel;
-    private readonly Vector2 _on = new(7f, -1.3f);
-	private readonly Vector2 _off = new(20f, -1.3f);
-
+    //[SerializeField] Button toMain;
+    [SerializeField] private SpriteSwitcher spriteSwitcher;
     private bool is_mainpanel = true;
-
  
     void Start () {
         toCon.onClick.AddListener(conOn);
-        toMain.onClick.AddListener(mainOn);
+        //toMain.onClick.AddListener(mainOn);
         mainOn();
     }
     void Update()
     {
-        Transform myt = cmdpanel.transform;
-        if(is_mainpanel){
-            myt.position = _on;
-        }else{
-            myt.position = _off;
-        }
+        UpdatePanelState();
     }
 
     void conOn(){
@@ -41,6 +33,19 @@ public class PanelContoroller : MonoBehaviour
         is_mainpanel = true;
         conPanel.SetActive(false);
         mainPanel.SetActive(true);
+    }
+    void UpdatePanelState()
+    {
+        if (spriteSwitcher.GetisOn())
+        {
+            conPanel.SetActive(true);
+            mainPanel.SetActive(false);
+        }
+        else
+        {
+            conPanel.SetActive(false);
+            mainPanel.SetActive(true);
+        }
     }
     public bool Getismain(){
         return is_mainpanel;
