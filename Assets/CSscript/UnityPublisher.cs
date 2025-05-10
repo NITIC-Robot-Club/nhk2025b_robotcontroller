@@ -17,7 +17,7 @@ public class UnityPublisher : MonoBehaviour
     private ROS2UnityComponent ros2Unity;
     private ROS2Node ros2Node;
     //private IPublisher<Ts> pub;
-    private int target_num = 0;
+    //private int target_num = 0;
     [System.NonSerialized] public Queue<string> queue = new Queue<string>();
     [System.NonSerialized] public Queue<twist> twistmsgs = new Queue<twist>();
     //private IEnumerator routine;
@@ -45,6 +45,7 @@ public class UnityPublisher : MonoBehaviour
         leftdsjoy = controllerActions.GetComponent<ControllerActions>().Getleftjoy();
         rightdsjoy = controllerActions.GetComponent<ControllerActions>().Getrightjoy();
         is_main = uiope.GetComponent<PanelContoroller>().Getismain();
+        if(is_main) ResetJoystickInput();
         if(ros2Unity.Ok()){
             if(ros2Node == null){
                 ros2Node = ros2Unity.CreateNode("UnityPubNode");
@@ -75,19 +76,30 @@ public class UnityPublisher : MonoBehaviour
     {
         while (true)
         {
-            ROS2Clock clock = new ROS2Clock();
-            TS sendtwist = new TS
+            if (!is_main)
             {
-                Twist = new geometry_msgs.msg.Twist(),
-                Header = new std_msgs.msg.Header()
-            };
-            sendtwist.Twist.Linear.X = XYJoy.Vertical * 2.0f;
-            sendtwist.Twist.Linear.Y = -XYJoy.Horizontal * 2.0f;
-            sendtwist.Twist.Angular.Z = -ZJoy.Horizontal * Mathf.PI;
-            clock.UpdateROSClockTime(sendtwist.Header.Stamp);
-            sendtwist.Header.Frame_id = "base_link";
-            if(!is_main) joy_pub.Publish(sendtwist);
+                ROS2Clock clock = new ROS2Clock();
+                TS sendtwist = new TS
+                {
+                    Twist = new geometry_msgs.msg.Twist(),
+                    Header = new std_msgs.msg.Header()
+                };
+                sendtwist.Twist.Linear.X = XYJoy.Vertical * 2.0f;
+                sendtwist.Twist.Linear.Y = -XYJoy.Horizontal * 2.0f;
+                sendtwist.Twist.Angular.Z = -ZJoy.Horizontal * Mathf.PI;
+                clock.UpdateROSClockTime(sendtwist.Header.Stamp);
+                sendtwist.Header.Frame_id = "base_link";
+                joy_pub.Publish(sendtwist);
+            }
             yield return new WaitForSeconds(pub_hz);
         }
+    }
+
+    public void ResetJoystickInput()
+    {
+        XYJoy.transform.Find("Handle").GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+        ZJoy.transform.Find("Handle").GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+        XYJoy.Setpos(Vector2.zero);
+        ZJoy.Setpos(Vector2.zero);
     }
 }

@@ -13,6 +13,7 @@ public class PanelContoroller : MonoBehaviour
     //[SerializeField] Button toMain;
     [SerializeField] private SpriteSwitcher spriteSwitcher;
     private bool is_mainpanel = true;
+    public GameObject JoyCpn;
  
     void Start () {
         toCon.onClick.AddListener(conOn);
@@ -33,18 +34,22 @@ public class PanelContoroller : MonoBehaviour
         is_mainpanel = true;
         conPanel.SetActive(false);
         mainPanel.SetActive(true);
+        JoyCpn.GetComponent<UnityPublisher>().ResetJoystickInput();
     }
     void UpdatePanelState()
     {
         if (spriteSwitcher.GetisOn())
         {
+            is_mainpanel = false;
             conPanel.SetActive(true);
             mainPanel.SetActive(false);
         }
         else
         {
+            is_mainpanel = true;
             conPanel.SetActive(false);
             mainPanel.SetActive(true);
+            JoyCpn.GetComponent<UnityPublisher>().ResetJoystickInput();
         }
     }
     public bool Getismain(){

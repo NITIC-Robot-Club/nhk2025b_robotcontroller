@@ -1339,6 +1339,7 @@ GameObject:
   - component: {fileID: 996309103}
   - component: {fileID: 996309105}
   - component: {fileID: 996309104}
+  - component: {fileID: 996309106}
   m_Layer: 5
   m_Name: Control Panel
   m_TagString: Untagged
@@ -1405,6 +1406,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 996309102}
   m_CullTransparentMesh: 1
+--- !u!114 &996309106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 996309102}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6b31e6e158a1e63e9d29899bc561bee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  handle: {fileID: 1378659151}
 --- !u!1 &1030786895
 GameObject:
   m_ObjectHideFlags: 0
@@ -2456,8 +2470,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3dc5f8b6eb20f731cba279366349ac39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cmdTopicName: /cmd
-  mapTopicName: /behavior/map
   mapImage: {fileID: 2059423685}
 --- !u!114 &1806372284
 MonoBehaviour:
@@ -2473,7 +2485,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   controllerActions: {fileID: 1806372275}
   uiope: {fileID: 1964926389}
-  twistringTopicName: /cmd
   twiststampedTopicName: /cmd_vel
   pub_hz: 0.05
   XYJoy: {fileID: 1327206532}
@@ -2852,6 +2863,7 @@ MonoBehaviour:
   menuPanel: {fileID: 1992477556}
   toCon: {fileID: 1167131743}
   spriteSwitcher: {fileID: 1167131746}
+  JoyCpn: {fileID: 1806372275}
 --- !u!4 &1964926391
 Transform:
   m_ObjectHideFlags: 0

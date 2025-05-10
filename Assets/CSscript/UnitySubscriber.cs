@@ -12,6 +12,7 @@ using Ps = geometry_msgs.msg.PoseStamped;
 using Pa = nav_msgs.msg.Path;
 using TS = geometry_msgs.msg.TwistStamped;
 using Sw = nhk2025b_msgs.msg.Swerve;
+using Rs = nhk2025b_msgs.msg.RobotStatus;
 
 public class UnitySubscriber : MonoBehaviour
 {
@@ -85,8 +86,9 @@ public class UnitySubscriber : MonoBehaviour
 
     void resultCallback(Sw swerveResult)
     {
+        Debug.Log("Result received." + swerveResult.Wheel_angle[0] + ", " + swerveResult.Wheel_angle[1] + ", " + swerveResult.Wheel_angle[2] + ", " + swerveResult.Wheel_angle[3]);
+        Debug.Log("Result received." + swerveResult.Wheel_speed[0] + ", " + swerveResult.Wheel_speed[1] + ", " + swerveResult.Wheel_speed[2] + ", " + swerveResult.Wheel_speed[3]);
     }
-
     void cmdCallback(Sw msg)
     {
     }
