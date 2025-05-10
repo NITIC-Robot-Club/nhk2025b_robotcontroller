@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using ROS2;
 using topicSt = std_msgs.msg.String;
-using Ts = twistring.msg.Twistring;
+//using Ts = twistring.msg.Twistring;
 [System.Serializable]
 public class Data {
     public Button button;
