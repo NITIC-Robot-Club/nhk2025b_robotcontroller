@@ -7,38 +7,56 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using topicSt = std_msgs.msg.String;
-using Ts = twistring.msg.Twistring;
 using Og = nav_msgs.msg.OccupancyGrid;
 using Ps = geometry_msgs.msg.PoseStamped;
 using Pa = nav_msgs.msg.Path;
 using TS = geometry_msgs.msg.TwistStamped;
-using Swerve = nhk2025b_msgs.msg.Swerve;
+using Sw = nhk2025b_msgs.msg.Swerve;
+using Rs = nhk2025b_msgs.msg.RobotStatus;
+using TMPro;
 
 public class UnitySubscriber : MonoBehaviour
 {
     private ROS2UnityComponent ros2Unity;
     private ROS2Node ros2Node;
-    private ISubscription<Ts> msg_sub;
     private ISubscription<Og> map_sub;
     private ISubscription<Ps> currentpose_sub;
     private ISubscription<Ps> goalpose_sub;
     private ISubscription<Pa> path_sub;
     private ISubscription<Ps> lookahreadpose_sub;
+    private ISubscription<Sw> result_sub;
+    private ISubscription<Sw> cmd_sub;
 
     private Queue<string> recqueue = new Queue<string>();
-    [SerializeField] private string msgTopicName = "/my_sub_topic_name";
-    private string mapTopicName = "/behavior/map";
-    private string currentposeToicName = "localization/current_pose";
-    private string goalposeTopicName = "/control/lookahread_pose";
-    private string pathTopicName = "/planning/path";
-    private string lookahreadposeTopicName = "/visualization/swerve/result";
-    private string cmdTopicName = "/visualization/swerve/cmd";
 
-    public Image mapImage;
+    //public Image mapImage;
+    [SerializeField] private TMP_Text mapTopicText;
+    private string data;
+
+    //Current Pose Subscriber
+    public GameObject robot;
+    private RectTransform robotRectTransform;
+    const float m2pixX = 1589.74f / 10.0f;
+    const float m2pixY = 813.47f / 5.0f;
+    const float anchorX = -100f;
+    const float anchorY = -100f;
+    private float posX = anchorX;
+    private float posY = anchorY;
+    private float oriZ;
+    private float oriW;
+    private float gposX;
+    private float gposY;
+    private float goriZ;
+    private float goriW;
+
+    //Goal Pose Subscriber
+
 
     void Start()
     {
         TryGetComponent(out ros2Unity);
+        robotRectTransform = (RectTransform)robot.transform;
+        robotRectTransform.transform.rotation = Quaternion.Euler(0f, 0f, 90f);
     }
 
     void Update()
@@ -48,25 +66,58 @@ public class UnitySubscriber : MonoBehaviour
             if (ros2Node == null)
             {
                 ros2Node = ros2Unity.CreateNode("UnitySubNode");
-                msg_sub = ros2Node.CreateSubscription<Ts>(cmdTopicName, callback);
-                map_sub = ros2Node.CreateSubscription<Og>(mapTopicName, MapCallback);
+                map_sub = ros2Node.CreateSubscription<Og>("/behavior/map", mappingCallback);
+                currentpose_sub = ros2Node.CreateSubscription<Ps>("/localization/current_pose", currentposeCallback);
+                goalpose_sub = ros2Node.CreateSubscription<Ps>("/behavior/goal_pose", goalposeCallback);
+                path_sub = ros2Node.CreateSubscription<Pa>("/planning/path", pathCallback);
+                lookahreadpose_sub = ros2Node.CreateSubscription<Ps>("/control/lookahread_pose", lookahreadposeCallback);
+                result_sub = ros2Node.CreateSubscription<Sw>("/visualization/swerve/result", resultCallback);
+                cmd_sub = ros2Node.CreateSubscription<Sw>("/visualization/swerve/cmd", cmdCallback);
             }
         }
+        mapTopicText.SetText(data);
+
+        robotRectTransform.anchoredPosition = new Vector3(posX, posY, 0f);
+        robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, oriZ, oriW);
     }
 
-    void callback(Ts msg)
+    void mappingCallback(Og msg)
     {
-        if (msg.Cmd != "") recqueue.Enqueue("ID." + msg.Id + ":" + msg.Cmd);
+        /*Debug.Log($"map data: {msg.Info.Resolution}, {msg.Info.Width}, {msg.Info.Height}, " +
+                            $"{msg.Info.Origin.Position.X}, {msg.Info.Origin.Position.Y}, {msg.Info.Origin.Position.Z}, {msg.Info.Origin.Orientation.W}");
+        data = $"map data: {msg.Info.Resolution}, {msg.Info.Width}, {msg.Info.Height}, " +
+                              $"{msg.Info.Origin.Position.X}, {msg.Info.Origin.Position.Y}, {msg.Info.Origin.Position.Z}, {msg.Info.Origin.Orientation.W}";*/
     }
 
-    void MapCallback(Og msg)
+    void currentposeCallback(Ps msg)
     {
-        var info = msg.Info;
-        Debug.Log($"Map Info:");
-        Debug.Log($"  Width: {info.Width}");
-        Debug.Log($"  Height: {info.Height}");
-        Debug.Log($"  Resolution: {info.Resolution}");
-        Debug.Log($"  Origin Position: ({info.Origin.Position.X}, {info.Origin.Position.Y}, {info.Origin.Position.Z})");
-        Debug.Log($"  Origin Orientation: ({info.Origin.Orientation.X}, {info.Origin.Orientation.Y}, {info.Origin.Orientation.Z}, {info.Origin.Orientation.W})");
+        posX = -(float)msg.Pose.Position.X * m2pixY + anchorX;
+        posY = -(float)msg.Pose.Position.Y * m2pixX + anchorY;
+        oriZ = -(float)msg.Pose.Orientation.Z;
+        oriW = -(float)msg.Pose.Orientation.W;
+    }
+
+    void goalposeCallback(Ps msg)
+    {
+        gposX = -(float)msg.Pose.Position.Y * m2pixX + anchorX;
+        gposY = (float)msg.Pose.Position.X * m2pixY + anchorY;
+        goriZ = -(float)msg.Pose.Orientation.Z;                  //sin(z_ /2)
+        goriW = -(float)msg.Pose.Orientation.W;                  //cos(z_ /2)
+    }
+
+    void pathCallback(Pa msg)
+    {
+    }
+
+    void lookahreadposeCallback(Ps msg)
+    {
+    }
+
+    void resultCallback(Sw msg)
+    {
+    }
+
+    void cmdCallback(Sw msg)
+    {
     }
 }

@@ -13,7 +13,11 @@
 // limitations under the License.
 
 #if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Build;
@@ -30,6 +34,7 @@ internal class PostInstall : IPostprocessBuildWithReport
     public int callbackOrder { get { return 0; } }
     public void OnPostprocessBuild(BuildReport report)
     {
+#if !UNITY_ANDROID
         var r2fuMetadataName = "metadata_ros2_for_unity.xml";
         var r2csMetadataName = "metadata_ros2cs.xml";
 
@@ -40,13 +45,24 @@ internal class PostInstall : IPostprocessBuildWithReport
         var execFilename = Path.GetFileNameWithoutExtension(report.summary.outputPath);
         FileUtil.CopyFileOrDirectory(
             r2fuMeta, outputDir + "/" + execFilename + "_Data/" + r2fuMetadataName);
-        if (ROS2ForUnity.GetOS() == ROS2ForUnity.Platform.Linux) {
+        if (EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneLinux64) {
             FileUtil.CopyFileOrDirectory(
                 r2csMeta, outputDir + "/" + execFilename + "_Data/Plugins/" + r2csMetadataName);
+
+            // Copy versioned libraries (Unity skips them)
+            Regex soWithVersionReg = new Regex(@".*\.so(\.[0-9])+$");
+            var versionedLibs = new List<String>(Directory.GetFiles(ROS2ForUnity.GetPluginPath()))
+                                    .Where(path => soWithVersionReg.IsMatch(path))
+                                    .ToList();
+            foreach (var libPath in versionedLibs) {
+                FileUtil.CopyFileOrDirectory(
+                    libPath, outputDir + "/" + execFilename + "_Data/Plugins/" + Path.GetFileName(libPath));
+            }
         } else {
             FileUtil.CopyFileOrDirectory(
                 r2csMeta, outputDir + "/" + execFilename + "_Data/Plugins/x86_64/" + r2csMetadataName);
         }
+#endif
     }
 
 }
