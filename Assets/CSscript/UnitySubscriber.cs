@@ -13,6 +13,7 @@ using Pa = nav_msgs.msg.Path;
 using TS = geometry_msgs.msg.TwistStamped;
 using Sw = nhk2025b_msgs.msg.Swerve;
 using Rs = nhk2025b_msgs.msg.RobotStatus;
+using TMPro;
 
 public class UnitySubscriber : MonoBehaviour
 {
@@ -27,19 +28,35 @@ public class UnitySubscriber : MonoBehaviour
     private ISubscription<Sw> cmd_sub;
 
     private Queue<string> recqueue = new Queue<string>();
-    private string mapTopicName = "/behavior/map";
-    private string currentposeToicName = "localization/current_pose";
-    private string goalposeTopicName = "/behavior/goal_pose";
-    private string pathTopicName = "/planning/path";
-    private string lookahreadposeTopicName = "/control/lookahread_pose";
-    private string resultTopicName = "/visualization/swerve/result";
-    private string cmdTopicName = "/visualization/swerve/cmd";
 
-    public Image mapImage;
+    //public Image mapImage;
+    [SerializeField] private TMP_Text mapTopicText;
+    private string data;
+
+    //Current Pose Subscriber
+    public GameObject robot;
+    private RectTransform robotRectTransform;
+    const float m2pixX = 1589.74f / 10.0f;
+    const float m2pixY = 813.47f / 5.0f;
+    const float anchorX = -100f;
+    const float anchorY = -100f;
+    private float posX = anchorX;
+    private float posY = anchorY;
+    private float oriZ;
+    private float oriW;
+    private float gposX;
+    private float gposY;
+    private float goriZ;
+    private float goriW;
+
+    //Goal Pose Subscriber
+
 
     void Start()
     {
         TryGetComponent(out ros2Unity);
+        robotRectTransform = (RectTransform)robot.transform;
+        robotRectTransform.transform.rotation = Quaternion.Euler(0f, 0f, 90f);
     }
 
     void Update()
@@ -49,30 +66,43 @@ public class UnitySubscriber : MonoBehaviour
             if (ros2Node == null)
             {
                 ros2Node = ros2Unity.CreateNode("UnitySubNode");
-                map_sub = ros2Node.CreateSubscription<Og>(mapTopicName, mapCallback);
-                currentpose_sub = ros2Node.CreateSubscription<Ps>(currentposeToicName, currentposeCallback);
-                goalpose_sub = ros2Node.CreateSubscription<Ps>(goalposeTopicName, goalposeCallback);
-                path_sub = ros2Node.CreateSubscription<Pa>(pathTopicName, pathCallback);
-                lookahreadpose_sub = ros2Node.CreateSubscription<Ps>(lookahreadposeTopicName, lookahreadposeCallback);
-                result_sub = ros2Node.CreateSubscription<Sw>(resultTopicName, resultCallback);
-                cmd_sub = ros2Node.CreateSubscription<Sw>(cmdTopicName, cmdCallback);
+                map_sub = ros2Node.CreateSubscription<Og>("/behavior/map", mappingCallback);
+                currentpose_sub = ros2Node.CreateSubscription<Ps>("/localization/current_pose", currentposeCallback);
+                goalpose_sub = ros2Node.CreateSubscription<Ps>("/behavior/goal_pose", goalposeCallback);
+                path_sub = ros2Node.CreateSubscription<Pa>("/planning/path", pathCallback);
+                lookahreadpose_sub = ros2Node.CreateSubscription<Ps>("/control/lookahread_pose", lookahreadposeCallback);
+                result_sub = ros2Node.CreateSubscription<Sw>("/visualization/swerve/result", resultCallback);
+                cmd_sub = ros2Node.CreateSubscription<Sw>("/visualization/swerve/cmd", cmdCallback);
             }
         }
+        mapTopicText.SetText(data);
+
+        robotRectTransform.anchoredPosition = new Vector3(posX, posY, 0f);
+        robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, oriZ, oriW);
     }
 
-    void mapCallback(Og msg)
+    void mappingCallback(Og msg)
     {
-        Debug.Log("Map received.");
+        /*Debug.Log($"map data: {msg.Info.Resolution}, {msg.Info.Width}, {msg.Info.Height}, " +
+                            $"{msg.Info.Origin.Position.X}, {msg.Info.Origin.Position.Y}, {msg.Info.Origin.Position.Z}, {msg.Info.Origin.Orientation.W}");
+        data = $"map data: {msg.Info.Resolution}, {msg.Info.Width}, {msg.Info.Height}, " +
+                              $"{msg.Info.Origin.Position.X}, {msg.Info.Origin.Position.Y}, {msg.Info.Origin.Position.Z}, {msg.Info.Origin.Orientation.W}";*/
     }
 
     void currentposeCallback(Ps msg)
     {
-        Debug.Log("Current Pose: " + msg.Pose.Position.X + ", " + msg.Pose.Position.Y);
+        posX = -(float)msg.Pose.Position.X * m2pixY + anchorX;
+        posY = -(float)msg.Pose.Position.Y * m2pixX + anchorY;
+        oriZ = -(float)msg.Pose.Orientation.Z;
+        oriW = -(float)msg.Pose.Orientation.W;
     }
 
     void goalposeCallback(Ps msg)
     {
-        Debug.Log("Goal Pose: " + msg.Pose.Position.X + ", " + msg.Pose.Position.Y);
+        gposX = -(float)msg.Pose.Position.Y * m2pixX + anchorX;
+        gposY = (float)msg.Pose.Position.X * m2pixY + anchorY;
+        goriZ = -(float)msg.Pose.Orientation.Z;                  //sin(z_ /2)
+        goriW = -(float)msg.Pose.Orientation.W;                  //cos(z_ /2)
     }
 
     void pathCallback(Pa msg)
@@ -81,14 +111,12 @@ public class UnitySubscriber : MonoBehaviour
 
     void lookahreadposeCallback(Ps msg)
     {
-        Debug.Log("Look Ahead Pose: " + msg.Pose.Position.X + ", " + msg.Pose.Position.Y);
     }
 
-    void resultCallback(Sw swerveResult)
+    void resultCallback(Sw msg)
     {
-        Debug.Log("Result received." + swerveResult.Wheel_angle[0] + ", " + swerveResult.Wheel_angle[1] + ", " + swerveResult.Wheel_angle[2] + ", " + swerveResult.Wheel_angle[3]);
-        Debug.Log("Result received." + swerveResult.Wheel_speed[0] + ", " + swerveResult.Wheel_speed[1] + ", " + swerveResult.Wheel_speed[2] + ", " + swerveResult.Wheel_speed[3]);
     }
+
     void cmdCallback(Sw msg)
     {
     }

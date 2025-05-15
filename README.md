@@ -54,9 +54,9 @@ sudo rm /etc/apt/sources.list.d/microsoft-prod.list
 sudo apt update
 sudo apt install -y dotnet-sdk-6.0
 ```
-- It is convenient to include the following command in ```~/.profile```.
+- It is convenient to include the following command.
 ```bash
-. /opt/ros/humble/setup.bash
+echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 ```
 
 ### Step1 Make a Project Folders
