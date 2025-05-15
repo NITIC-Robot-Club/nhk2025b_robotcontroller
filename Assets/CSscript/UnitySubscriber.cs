@@ -32,24 +32,26 @@ public class UnitySubscriber : MonoBehaviour
     //public Image mapImage;
     [SerializeField] private TMP_Text mapTopicText;
     private string data;
-
+    //Pose Variables
+    const float m2pixX = 1589.74f / 10.0f;          // px/m
+    const float m2pixY = 813.47f / 5.0f;            // px/m
+    const float anchorX = -100f;                    // px
+    const float anchorY = -100f;                    // px
     //Current Pose Subscriber
     public GameObject robot;
     private RectTransform robotRectTransform;
-    const float m2pixX = 1589.74f / 10.0f;
-    const float m2pixY = 813.47f / 5.0f;
-    const float anchorX = -100f;
-    const float anchorY = -100f;
     private float posX = anchorX;
     private float posY = anchorY;
     private float oriZ;
     private float oriW;
+
+    //Goal Pose Subscriber
+    public GameObject goal;
+    private RectTransform goalRectTransform;
     private float gposX;
     private float gposY;
     private float goriZ;
     private float goriW;
-
-    //Goal Pose Subscriber
 
 
     void Start()
@@ -57,6 +59,8 @@ public class UnitySubscriber : MonoBehaviour
         TryGetComponent(out ros2Unity);
         robotRectTransform = (RectTransform)robot.transform;
         robotRectTransform.transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+        goalRectTransform = (RectTransform)goal.transform;
+        goalRectTransform.transform.rotation = Quaternion.Euler(0f, 0f, 90f);
     }
 
     void Update()
@@ -77,6 +81,8 @@ public class UnitySubscriber : MonoBehaviour
         }
         mapTopicText.SetText(data);
 
+        goalRectTransform.anchoredPosition = new Vector3(gposX, gposY, 0f);
+        goal.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, goriZ, goriW);
         robotRectTransform.anchoredPosition = new Vector3(posX, posY, 0f);
         robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, oriZ, oriW);
     }
@@ -99,10 +105,10 @@ public class UnitySubscriber : MonoBehaviour
 
     void goalposeCallback(Ps msg)
     {
-        gposX = -(float)msg.Pose.Position.Y * m2pixX + anchorX;
-        gposY = (float)msg.Pose.Position.X * m2pixY + anchorY;
-        goriZ = -(float)msg.Pose.Orientation.Z;                  //sin(z_ /2)
-        goriW = -(float)msg.Pose.Orientation.W;                  //cos(z_ /2)
+        gposX = -(float)msg.Pose.Position.X * m2pixY + anchorX;
+        gposY = -(float)msg.Pose.Position.Y * m2pixX + anchorY;
+        goriZ = -(float)msg.Pose.Orientation.Z;
+        goriW = -(float)msg.Pose.Orientation.W;
     }
 
     void pathCallback(Pa msg)
