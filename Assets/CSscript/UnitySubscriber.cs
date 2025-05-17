@@ -74,8 +74,8 @@ public class UnitySubscriber : MonoBehaviour
     public GameObject[] swerve = new GameObject[4];
     private RectTransform[] swerveRectTransform = new RectTransform[4];
     private float[] wheelAngle = new float[4];
+    private float[] previousWheelAngle = new float[4];
     private float[] wheelSpeed = new float[4];
-    private float angleDeg = 0f;
 
     void Start()
     {
@@ -129,7 +129,7 @@ public class UnitySubscriber : MonoBehaviour
             Color color = Color.Lerp(minColor, maxColor, t);
             var image = swerve[i]?.GetComponent<UnityEngine.UI.Image>();
             image.color = color;
-            swerveRectTransform[i].transform.rotation = Quaternion.Euler(0f, 0f, wheelAngle[i] + 180f);
+            swerveRectTransform[i].transform.rotation = Quaternion.Euler(0f, 0f, wheelAngle[i]);
         }
     }
 
@@ -185,8 +185,7 @@ public class UnitySubscriber : MonoBehaviour
             {
                 wheelSpeed[i] = (float)msg.Wheel_speed[i];
             }
-            wheelAngle[i] = (float)msg.Wheel_angle[i] * Mathf.Rad2Deg;
-            if (wheelAngle[i] > 180f) wheelAngle[i] -= 360f;
+            wheelAngle[i] = (float)msg.Wheel_angle[i];
         }
     }
 
