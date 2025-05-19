@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,132 +9,126 @@ public class PanelContoroller : MonoBehaviour
 {
     [SerializeField] GameObject conPanel;
     [SerializeField] GameObject mainPanel;
-    [SerializeField] GameObject menuPanel;
     [SerializeField] GameObject infoPanel;
-    [SerializeField] Button toCon;
     //[SerializeField] Button toMain;
     [SerializeField] private SpriteSwitcher conSwitcher;
+    [SerializeField] private Button conSwitcherButton;
+    private bool conSwitcherState = false;
     [SerializeField] private SpriteSwitcher infoSwitcher;
+    [SerializeField] private Button infoSwitcherButton;
+    private bool infoSwitcherState = false;
     private bool is_mainpanel = true;
+    private bool is_conpanel = false;
+    private bool is_infopanel = false;
     public GameObject JoyCpn;
-    private bool previousMain = true;
-    private bool previousCon = false;
-    private bool previousInfo = false;
+    private string previousPanel = "Main";
  
     void Start () {
-        toCon.onClick.AddListener(conOn);
-        //toMain.onClick.AddListener(mainOn);
+        conSwitcherButton.onClick.AddListener(conSwitcherOn);
+        infoSwitcherButton.onClick.AddListener(infoSwitcherOn);
         mainOn();
     }
+
     void Update()
     {
-        UpdatePanelState();
+    }
+
+    void mainOn(){
+        is_mainpanel = true;
+        is_conpanel = false;
+        is_infopanel = false;
+        mainPanel.SetActive(true);
+        conPanel.SetActive(false);
+        infoPanel.SetActive(false);
+        JoyCpn.GetComponent<UnityPublisher>().ResetJoystickInput();
     }
 
     void conOn(){
         is_mainpanel = false;
-        conPanel.SetActive(true);
+        is_conpanel = true;
+        is_infopanel = false;
         mainPanel.SetActive(false);
+        conPanel.SetActive(true);
+        infoPanel.SetActive(false);
     }
-    void mainOn(){
-        is_mainpanel = true;
+
+    void infoOn(){
+        is_mainpanel = false;
+        is_conpanel = false;
+        is_infopanel = true;
+        mainPanel.SetActive(false);
         conPanel.SetActive(false);
-        mainPanel.SetActive(true);
+        infoPanel.SetActive(true);
         JoyCpn.GetComponent<UnityPublisher>().ResetJoystickInput();
     }
-    void UpdatePanelState()
-    {
-        if (conSwitcher.GetisOn())
+
+    void conSwitcherOn(){
+        conSwitcherState = !conSwitcherState;
+        if (conSwitcherState)
         {
-            if (infoSwitcher.GetisOn())
-            {
-                is_mainpanel = false;
-                previousMain = false;
-                previousCon = false;
-                previousInfo = true;
-                infoPanel.SetActive(false);
-                conPanel.SetActive(true);
-            }
-            else 
-            {
-                is_mainpanel = false;
-                previousMain = false;
-                previousCon = true;
-                previousInfo = false;
-                conPanel.SetActive(true);
-                mainPanel.SetActive(false);
-            }
+            previousPanel = GetCurrentPanel();
+            conOn();
         }
         else
         {
-            if (infoSwitcher.GetisOn())
-            {
-                is_mainpanel = false;
-                previousMain = false;
-                previousCon = false;
-                previousInfo = true;
-                conPanel.SetActive(false);
-                infoPanel.SetActive(true);
-            }
-            else
-            {
-                is_mainpanel = true;
-                previousMain = true;
-                previousCon = false;
-                previousInfo = false;
-                conPanel.SetActive(false);
-                mainPanel.SetActive(true);
-            }
+            mainOn();
         }
-        if (infoSwitcher.GetisOn())
+    }
+
+    void infoSwitcherOn(){
+        infoSwitcherState = !infoSwitcherState;
+        if (infoSwitcherState)
         {
-            if (is_mainpanel)
-            {
-                previousMain = true;
-                previousCon = false;
-                previousInfo = true;
-            }
-            else
-            {
-                previousMain = false;
-                previousCon = true;
-                previousInfo = false;
-            }
-            is_mainpanel = false;
-            conPanel.SetActive(false);
-            mainPanel.SetActive(false);
-            infoPanel.SetActive(true);
-            JoyCpn.GetComponent<UnityPublisher>().ResetJoystickInput();
+            previousPanel = GetCurrentPanel();
+            infoOn();
         }
         else
         {
-            if (previousMain)
+            if (previousPanel == "Main")
             {
-                is_mainpanel = true;
-                conPanel.SetActive(false);
-                mainPanel.SetActive(true);
-                infoPanel.SetActive(false);
-                JoyCpn.GetComponent<UnityPublisher>().ResetJoystickInput();
+                mainOn();
             }
-            else if (previousCon)
+            else if (previousPanel == "Con")
             {
-                is_mainpanel = false;
-                conPanel.SetActive(true);
-                mainPanel.SetActive(false);
-                infoPanel.SetActive(false);
-                JoyCpn.GetComponent<UnityPublisher>().ResetJoystickInput();
-            }
-            else if (previousInfo)
-            {
-                is_mainpanel = false;
-                conPanel.SetActive(false);
-                mainPanel.SetActive(false);
-                infoPanel.SetActive(true);
-                JoyCpn.GetComponent<UnityPublisher>().ResetJoystickInput();
+                conOn();
             }
         }
     }
+
+    string GetCurrentPanel()
+    {
+        if (is_mainpanel)
+        {
+            return "Main";
+        }
+        else if (is_conpanel)
+        {
+            return "Con";
+        }
+        else if (is_infopanel)
+        {
+            return "Info";
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private string GetPreviousPanel()
+    {
+        return previousPanel;
+    }
+
     public bool Getismain(){
         return is_mainpanel;
+    }
+
+    public bool Getiscon(){
+        return is_conpanel;
+    }
+
+    public bool Getisinfo(){
+        return is_infopanel;
     }
 }

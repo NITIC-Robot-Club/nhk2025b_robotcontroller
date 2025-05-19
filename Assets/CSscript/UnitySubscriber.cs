@@ -64,8 +64,8 @@ public class UnitySubscriber : MonoBehaviour
 
     //Result Subscriber
     const float maxSpeed = 1000.0f;
-    public Color minColor = Color.green;
-    public Color maxColor = Color.red;
+    public Color minColor = Color.blue;
+    public Color maxColor = Color.green;
     private Renderer rend;
     [SerializeField] private TMP_Text swerveText0;
     [SerializeField] private TMP_Text swerveText1;
@@ -76,6 +76,8 @@ public class UnitySubscriber : MonoBehaviour
     private float[] wheelAngle = new float[4];
     private float[] previousWheelAngle = new float[4];
     private float[] wheelSpeed = new float[4];
+    private float soriZ;
+    private float soriW;
 
     void Start()
     {
@@ -129,7 +131,10 @@ public class UnitySubscriber : MonoBehaviour
             Color color = Color.Lerp(minColor, maxColor, t);
             var image = swerve[i]?.GetComponent<UnityEngine.UI.Image>();
             image.color = color;
-            swerveRectTransform[i].transform.rotation = Quaternion.Euler(0f, 0f, wheelAngle[i]);
+            //swerveRectTransform[i].localScale = new Vector3(1f, t, 1f);
+            soriZ = Mathf.Sin(wheelAngle[i] /  Mathf.Rad2Deg / 2.0f);
+            soriW = Mathf.Cos(wheelAngle[i] /  Mathf.Rad2Deg / 2.0f);
+            swerveRectTransform[i].transform.rotation = new Quaternion(0f, 0f, soriZ, soriW);
         }
     }
 
@@ -180,12 +185,13 @@ public class UnitySubscriber : MonoBehaviour
             else if (msg.Wheel_speed[i] < -1.0f)
             {
                 wheelSpeed[i] = Mathf.Abs(msg.Wheel_speed[i]);
+                msg.Wheel_angle[i] -= Mathf.PI;
             }
             else 
             {
                 wheelSpeed[i] = (float)msg.Wheel_speed[i];
             }
-            wheelAngle[i] = (float)msg.Wheel_angle[i];
+            wheelAngle[i] = (float)msg.Wheel_angle[i] * Mathf.Rad2Deg;
         }
     }
 
