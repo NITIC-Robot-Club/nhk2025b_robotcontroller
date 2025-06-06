@@ -2,9 +2,9 @@
 <ros2cs>
    <ros2>humble</ros2>
    <version>
-      <sha>7c96eee7be7e98641b74cc20a3bfbb6d7ee9f339</sha>
-      <desc>7c96eee</desc>
-      <date>2024-04-08 18:25:01 +0900</date>
+      <sha>d48bb8a37b11d2fc4947f7cd2a926386ce12b576</sha>
+      <desc>d48bb8a</desc>
+      <date>2025-06-05 16:21:05 +0900</date>
    </version>
    <standalone>0</standalone>
 </ros2cs>

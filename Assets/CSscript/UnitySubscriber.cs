@@ -29,9 +29,13 @@ public class UnitySubscriber : MonoBehaviour
 
     private Queue<string> recqueue = new Queue<string>();
 
-    //public Image mapImage;
-    [SerializeField] private TMP_Text mapTopicText;
-    private string data;
+    //Visualize OccupancyGrid
+    public RawImage rawImage;
+    private int ogWidth;
+    private int ogHeight;
+    private sbyte[] ogData;
+    private Texture2D ogTexture;
+
     //Pose Variables
     const float m2pixX = 1589.74f / 10.0f;          // px/m
     const float m2pixY = 813.47f / 5.0f;            // px/m
@@ -79,6 +83,8 @@ public class UnitySubscriber : MonoBehaviour
     private float soriZ;
     private float soriW;
 
+    private bool ogDirty = false;
+
     void Start()
     {
         TryGetComponent(out ros2Unity);
@@ -111,7 +117,6 @@ public class UnitySubscriber : MonoBehaviour
                 cmd_sub = ros2Node.CreateSubscription<Sw>("/visualization/swerve", cmdCallback);
             }
         }
-        if (mapTopicText != null) mapTopicText.SetText(data);
 
         lookaheadRectTransform.anchoredPosition = new Vector3(lposX, lposY, 0f);
         lookahead.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, loriZ, loriW);
@@ -128,22 +133,46 @@ public class UnitySubscriber : MonoBehaviour
         for (int i = 0; i < swerve.Length; i++)
         {
             float t = Mathf.Clamp01(Mathf.Abs(wheelSpeed[i]) / maxSpeed);
-            Color color = Color.Lerp(minColor, maxColor, t);
+            Color swerveColor = Color.Lerp(minColor, maxColor, t);
             var image = swerve[i]?.GetComponent<UnityEngine.UI.Image>();
-            image.color = color;
-            //swerveRectTransform[i].localScale = new Vector3(1f, t, 1f);
+            image.color = swerveColor;
             soriZ = Mathf.Sin(wheelAngle[i] /  Mathf.Rad2Deg / 2.0f);
             soriW = Mathf.Cos(wheelAngle[i] /  Mathf.Rad2Deg / 2.0f);
             swerveRectTransform[i].transform.rotation = new Quaternion(0f, 0f, soriZ, soriW);
+        }
+
+        if (ogDirty && ogData != null)
+        {
+            ogTexture = new Texture2D(ogWidth, ogHeight, TextureFormat.RGBA32, false);
+            for (int y = 0; y < ogHeight; y++)
+            {
+                for (int x = 0; x < ogWidth; x++)
+                {
+                    int index = y * ogWidth + x;
+                    sbyte val = ogData[index];
+                    Color ogColor;
+                    if (val == -1) ogColor = Color.gray;
+                    else if (val == 0) ogColor = Color.white;
+                    else ogColor = Color.black;
+                    ogTexture.SetPixel(ogWidth - x - 1, ogHeight - y - 1, ogColor);
+                }
+            }
+            ogTexture.Apply();
+            if (rawImage != null)
+            {
+                rawImage.texture = ogTexture;
+                rawImage.rectTransform.sizeDelta = new Vector2(ogWidth, ogHeight);
+            }
+            ogDirty = false; // フラグを戻す
         }
     }
 
     void mappingCallback(Og msg)
     {
-        /*Debug.Log($"map data: {msg.Info.Resolution}, {msg.Info.Width}, {msg.Info.Height}, " +
-                            $"{msg.Info.Origin.Position.X}, {msg.Info.Origin.Position.Y}, {msg.Info.Origin.Position.Z}, {msg.Info.Origin.Orientation.W}");
-        data = $"map data: {msg.Info.Resolution}, {msg.Info.Width}, {msg.Info.Height}, " +
-                              $"{msg.Info.Origin.Position.X}, {msg.Info.Origin.Position.Y}, {msg.Info.Origin.Position.Z}, {msg.Info.Origin.Orientation.W}";*/
+        ogWidth = (int)msg.Info.Width;
+        ogHeight = (int)msg.Info.Height;
+        ogData = (sbyte[])msg.Data.Clone(); // データだけコピー
+        ogDirty = true; // Updateで描画するフラグ
     }
 
     void currentposeCallback(Ps msg)
