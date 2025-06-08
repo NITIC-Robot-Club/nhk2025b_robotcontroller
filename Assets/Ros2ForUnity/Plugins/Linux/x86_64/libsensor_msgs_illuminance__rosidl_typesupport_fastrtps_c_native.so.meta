@@ -20,9 +20,15 @@ PluginImporter:
         Exclude Editor: 1
         Exclude Linux64: 0
         Exclude OSXUniversal: 0
+        Exclude VisionOS: 1
         Exclude Win: 0
         Exclude Win64: 0
-        Exclude iOS: 1
+  - first:
+      Android: Android
+    second:
+      enabled: 0
+      settings:
+        Is16KbAligned: false
   - first:
       Any: 
     second:

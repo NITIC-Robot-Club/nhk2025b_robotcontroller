@@ -35,12 +35,13 @@ public class UnitySubscriber : MonoBehaviour
     private int ogHeight;
     private sbyte[] ogData;
     private Texture2D ogTexture;
+    private bool ogDirty = false;
 
     //Pose Variables
-    const float m2pixX = 1589.74f / 10.0f;          // px/m
-    const float m2pixY = 813.47f / 5.0f;            // px/m
-    const float anchorX = -100f;                    // px
-    const float anchorY = -100f;                    // px
+    const float m2pixX = 2436.00f / 10.0f;          // px/m
+    const float m2pixY = 960.00f / 5.0f;            // px/m
+    const float anchorX = -75f;                     // px
+    const float anchorY = -240f;                    // px
 
     //Current Pose Subscriber
     public GameObject robot;
@@ -83,7 +84,14 @@ public class UnitySubscriber : MonoBehaviour
     private float soriZ;
     private float soriW;
 
-    private bool ogDirty = false;
+    //Visualize Path
+    const int maxPointCount = 100;
+    private Pa subscribedPath;
+    private GameObject[] points = new GameObject[100];
+    private RectTransform[] pointRectTransforms = new RectTransform[100];
+    [SerializeField] GameObject pointPrefab;
+    [SerializeField] GameObject pathParent;
+    [SerializeField] float pointSize = 0.02f;
 
     void Start()
     {
@@ -98,6 +106,16 @@ public class UnitySubscriber : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             swerveRectTransform[i] = (RectTransform)swerve[i].transform;
+        }
+
+        for (int i = 0; i < maxPointCount; i++)
+        {
+            points[i] = Instantiate(pointPrefab);
+            points[i].transform.SetParent(pathParent.transform);
+            points[i].transform.localScale = Vector3.one;
+            pointRectTransforms[i] = (RectTransform)points[i].transform;
+            pointRectTransforms[i].anchorMin = new Vector2(1, 0);
+            pointRectTransforms[i].anchorMax = new Vector2(1, 0);
         }
     }
 
@@ -163,7 +181,21 @@ public class UnitySubscriber : MonoBehaviour
                 rawImage.texture = ogTexture;
                 rawImage.rectTransform.sizeDelta = new Vector2(ogWidth, ogHeight);
             }
-            ogDirty = false; // フラグを戻す
+            ogDirty = false;
+        }
+
+        if(subscribedPath != null && subscribedPath.Poses.Length > 0){
+            int setmax=0;
+            if(subscribedPath.Poses.Length<maxPointCount)setmax= subscribedPath.Poses.Length;
+            else setmax = 100;
+            for(int i = 0;i < maxPointCount;i++){
+                int num = i * subscribedPath.Poses.Length/maxPointCount;
+                if(num > (subscribedPath.Poses.Length-1))num = subscribedPath.Poses.Length-1;
+                float x = -(float)subscribedPath.Poses[num].Pose.Position.X * m2pixY + anchorX;
+                float y = -(float)subscribedPath.Poses[num].Pose.Position.Y * m2pixX + anchorY;
+                pointRectTransforms[i] = (RectTransform)points[i].transform;
+                pointRectTransforms[i].anchoredPosition = new Vector3(x,y,0);
+            }
         }
     }
 
@@ -171,8 +203,8 @@ public class UnitySubscriber : MonoBehaviour
     {
         ogWidth = (int)msg.Info.Width;
         ogHeight = (int)msg.Info.Height;
-        ogData = (sbyte[])msg.Data.Clone(); // データだけコピー
-        ogDirty = true; // Updateで描画するフラグ
+        ogData = (sbyte[])msg.Data.Clone();
+        ogDirty = true;
     }
 
     void currentposeCallback(Ps msg)
@@ -193,6 +225,7 @@ public class UnitySubscriber : MonoBehaviour
 
     void pathCallback(Pa msg)
     {
+        subscribedPath = msg;
     }
 
     void lookaheadposeCallback(Ps msg)

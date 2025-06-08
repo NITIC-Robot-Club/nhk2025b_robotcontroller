@@ -1,5 +1,5 @@
 # NHK2025B Controller
-## How to Use Controller
+## How to Get Cotroller APK
 ### Platforms
 OS:
 ```
@@ -26,12 +26,13 @@ Required Editor Modules:
 ### Build This Project
 - Clone this project.
 ```bash
-git clone git@github.com:NITIC-Robot-Club/KRB2025B_controller.git
+git clone git@github.com:NITIC-Robot-Club/nhk2025b_robotcontroller.git
 ```
 - Create unity project from cloned disk.
 - Open ```File``` > ```Buid Settings```.
 - Switch platform to ```Android```.
 - Check a ```Development Build``` box.
+## How to Build for Controller
 ### Step0 Environmental Preparation(optionally)
 - Install softwares
 ```bash
@@ -70,46 +71,46 @@ mkdir android_build
 ```
 ### Step2 Clone Ros2 For Unity Projects
 #### Build for Linux or Windows
-- Clone [this project](https://github.com/RobotecAI/ros2-for-unity)
+- Clone [this project](https://github.com/NITIC-Robot-Club/ros2-for-unity)
 ```bash
 cd ~/ros2-for-unity_ws/linux_windows_build
-git clone -b humble git@github.com:RobotecAI/ros2-for-unity.git
-cd ~/linux_windows_build/ros2-for-unity
-./pull_repositories.sh
-```
-- Build```Ros2 For Unity```.
-```bash
-# standalone mode
-./build.sh --standalone
-
-# overlay mode
-./build.sh
-
-# recommend
-./build.sh --clean-install --standalone
-```
-- You can add ```--clean-install```.
-- Unity Asset is ready to import into your Unity project. You can find it in ```install/asset/``` directory.
-#### Build for Android
-- Clone [this project](https://github.com/hiro-han/ros2-for-unity)
-```bash
-cd ~/ros2-for-unity_ws/android_build
-git clone git@github.com:hiro-han/ros2-for-unity.git
+git clone git@github.com:NITIC-Robot-Club/ros2-for-unity.git
 cd ros2-for-unity
 ./pull_repositories.sh
 ```
 - Build```Ros2 For Unity```.
 ```bash
 # standalone mode
-./build.sh -p ~/Unity/Hub/Editor/2022.3.16f1/Editor/Data/PlaybackEngines/AndroidPlayer/NDK  --standalone
+./build.sh -s
+
+# overlay mode
+./build.sh
+
+# recommend
+./build.sh -s -c
+```
+- You can add ```--clean-install``` or ```-c```.
+- Unity Asset is ready to import into your Unity project. You can find it in ```install/asset/``` directory.
+#### Build for Android
+- Clone [this project](https://github.com/NITIC-Robot-Club/ros2-for-unity-for-android.git)
+```bash
+cd ~/ros2-for-unity_ws/android_build
+git clone git@github.com:NITIC-Robot-Club/ros2-for-unity-for-android.git
+cd ros2-for-unity-for-android
+./pull_repositories.sh
+```
+- Build```Ros2 For Unity```.
+```bash
+# standalone mode
+./build.sh -p ~/Unity/Hub/Editor/2022.3.16f1/Editor/Data/PlaybackEngines/AndroidPlayer/NDK -s
 
 # overlay mode
 ./build.sh -p ~/Unity/Hub/Editor/2022.3.16f1/Editor/Data/PlaybackEngines/AndroidPlayer/NDK
 
 # recommend
-./build.sh -p ~/Unity/Hub/Editor/2022.3.16f1/Editor/Data/PlaybackEngines/AndroidPlayer/NDK --clean-install --standalone
+./build.sh -p ~/Unity/Hub/Editor/2022.3.16f1/Editor/Data/PlaybackEngines/AndroidPlayer/NDK -s -c
 ```
-- You can add ```--clean-install```.
+- You can add ```--clean-install``` or ```-c```.
 - Unity Asset is ready to import into your Unity project. You can find it in ```install/asset/``` directory.
 
 ## How to Build Custom Message for Android

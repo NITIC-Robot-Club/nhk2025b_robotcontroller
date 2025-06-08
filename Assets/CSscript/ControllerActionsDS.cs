@@ -6,17 +6,17 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using TMPro;
 [System.Serializable] // <- これが大事。忘れずに
-public class NewDs4button {
-    public ButtonList ds4button;
+public class newDs4button {
+    public DSButtonList ds4button;
     public Button button;
-    public PanelList panel;
+    public DSPanelList panel;
 }
-public class ControllerActions : MonoBehaviour
+public class ControllerActionsDS : MonoBehaviour
 {
     [SerializeField] GameObject uiope;
-    [SerializeField] List<NewDs4button> ds4data;
+    [SerializeField] List<newDs4button> ds4data;
     private GameInputs _gameInputs;
-    private PanelList nowpanel;
+    private DSPanelList nowpanel;
     private bool is_main;
     private Vector2 _leftdsjoy;
     private Vector2 _rightdsjoy;
@@ -64,9 +64,9 @@ public class ControllerActions : MonoBehaviour
     void Update(){
         is_main = uiope.GetComponent<PanelContoroller>().Getismain();
         if(is_main){
-            nowpanel = PanelList.main;
+            nowpanel = DSPanelList.main;
         }else{
-            nowpanel = PanelList.con;
+            nowpanel = DSPanelList.con;
         }
         if(connect){
             Leftjoy.Setpos(_leftdsjoy);
@@ -77,27 +77,27 @@ public class ControllerActions : MonoBehaviour
     private void OnDestroy(){
         _gameInputs?.Dispose();
     }
-    private void OnMaru(InputAction.CallbackContext context){Osu(ButtonList.Maru);}
-    private void OnBatu(InputAction.CallbackContext context){Osu(ButtonList.Batu);}
-    private void OnSikaku(InputAction.CallbackContext context){Osu(ButtonList.Sikaku);}
-    private void OnSankaku(InputAction.CallbackContext context){Osu(ButtonList.Sankaku);}
-    private void OnUp(InputAction.CallbackContext context){Osu(ButtonList.Up);}
-    private void OnDown(InputAction.CallbackContext context){Osu(ButtonList.Down);}
-    private void OnLeft(InputAction.CallbackContext context){Osu(ButtonList.Left);}
-    private void OnRight(InputAction.CallbackContext context){Osu(ButtonList.Right);}
-    private void OnL1(InputAction.CallbackContext context){Osu(ButtonList.L1);}
-    private void OnL2(InputAction.CallbackContext context){Osu(ButtonList.L2);}
-    private void OnR1(InputAction.CallbackContext context){Osu(ButtonList.R1);}
-    private void OnR2(InputAction.CallbackContext context){Osu(ButtonList.R2);}
-    private void OnLo(InputAction.CallbackContext context){Osu(ButtonList.Lo);}
-    private void OnRo(InputAction.CallbackContext context){Osu(ButtonList.Ro);}
-    private void OnShare(InputAction.CallbackContext context){Osu(ButtonList.Share);}
-    private void OnOptions(InputAction.CallbackContext context){Osu(ButtonList.Options);}
-    private void OnTouchPad(InputAction.CallbackContext context){Osu(ButtonList.TouchPad);}
-    private void Osu(ButtonList OsuButton){
-        List<NewDs4button> result = ds4data.FindAll(m => m.ds4button == OsuButton);
+    private void OnMaru(InputAction.CallbackContext context){Osu(DSButtonList.Maru);}
+    private void OnBatu(InputAction.CallbackContext context){Osu(DSButtonList.Batu);}
+    private void OnSikaku(InputAction.CallbackContext context){Osu(DSButtonList.Sikaku);}
+    private void OnSankaku(InputAction.CallbackContext context){Osu(DSButtonList.Sankaku);}
+    private void OnUp(InputAction.CallbackContext context){Osu(DSButtonList.Up);}
+    private void OnDown(InputAction.CallbackContext context){Osu(DSButtonList.Down);}
+    private void OnLeft(InputAction.CallbackContext context){Osu(DSButtonList.Left);}
+    private void OnRight(InputAction.CallbackContext context){Osu(DSButtonList.Right);}
+    private void OnL1(InputAction.CallbackContext context){Osu(DSButtonList.L1);}
+    private void OnL2(InputAction.CallbackContext context){Osu(DSButtonList.L2);}
+    private void OnR1(InputAction.CallbackContext context){Osu(DSButtonList.R1);}
+    private void OnR2(InputAction.CallbackContext context){Osu(DSButtonList.R2);}
+    private void OnLo(InputAction.CallbackContext context){Osu(DSButtonList.Lo);}
+    private void OnRo(InputAction.CallbackContext context){Osu(DSButtonList.Ro);}
+    private void OnShare(InputAction.CallbackContext context){Osu(DSButtonList.Share);}
+    private void OnOptions(InputAction.CallbackContext context){Osu(DSButtonList.Options);}
+    private void OnTouchPad(InputAction.CallbackContext context){Osu(DSButtonList.TouchPad);}
+    private void Osu(DSButtonList OsuButton){
+        List<newDs4button> result = ds4data.FindAll(m => m.ds4button == OsuButton);
         for(int count = 0;count < result.Count;count++){
-            if(result[count].panel == nowpanel || result[count].panel == PanelList.CMD){
+            if(result[count].panel == nowpanel || result[count].panel == DSPanelList.CMD){
                 Debug.Log("New:"+result[count].ds4button.ToString());
                 result[count].button.onClick.Invoke();
             }
@@ -132,11 +132,11 @@ public class ControllerActions : MonoBehaviour
         }
     }
 }
-public enum ButtonList
+public enum DSButtonList
 {
     Sikaku,Batu,Maru,Sankaku,L1,L2,R1,R2,Lo,Ro,Up,Down,Right,Left,Share,Options,TouchPad
 }
-public enum PanelList
+public enum DSPanelList
 {
     con,main,CMD,Null
 }

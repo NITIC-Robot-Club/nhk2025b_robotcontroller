@@ -42,8 +42,8 @@ public class UnityPublisher : MonoBehaviour
 
     void Update()
     {
-        leftdsjoy = controllerActions.GetComponent<ControllerActions>().Getleftjoy();
-        rightdsjoy = controllerActions.GetComponent<ControllerActions>().Getrightjoy();
+        leftdsjoy = controllerActions.GetComponent<ControllerActionsDS>().Getleftjoy();
+        rightdsjoy = controllerActions.GetComponent<ControllerActionsDS>().Getrightjoy();
         is_main = uiope.GetComponent<PanelContoroller>().Getismain();
         if(is_main) ResetJoystickInput();
         if(ros2Unity.Ok()){

@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -157,7 +156,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -75, y: -75}
+  m_AnchoredPosition: {x: -75, y: -240}
   m_SizeDelta: {x: 150, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &82589390
@@ -330,7 +329,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.6603774, g: 0.6603774, b: 0.6603774, a: 0.5019608}
+  m_Color: {r: 0.6603774, g: 0.6603774, b: 0.6603774, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1585,6 +1584,7 @@ MonoBehaviour:
   m_DeselectOnBackgroundClick: 1
   m_PointerBehavior: 0
   m_CursorLockBehavior: 0
+  m_ScrollDeltaPerTick: 6
 --- !u!114 &828446917
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1974,8 +1974,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -82.587}
-  m_SizeDelta: {x: 2436, y: 959.83}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 2436, y: 1125}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &939515518
 MonoBehaviour:
@@ -2858,7 +2858,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -75, y: -75}
+  m_AnchoredPosition: {x: -75, y: -240}
   m_SizeDelta: {x: 150, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1206430829
@@ -3644,8 +3644,8 @@ GameObject:
   - component: {fileID: 1806372278}
   - component: {fileID: 1806372284}
   - component: {fileID: 1806372283}
-  - component: {fileID: 1806372285}
   - component: {fileID: 1806372286}
+  - component: {fileID: 1806372287}
   m_Layer: 0
   m_Name: Pubcontoroller
   m_TagString: Untagged
@@ -3730,6 +3730,9 @@ MonoBehaviour:
   - {fileID: 419896438}
   - {fileID: 1092714442}
   - {fileID: 1279105274}
+  pointPrefab: {fileID: 3683263056571184661, guid: 679060c35af08462da3995233ec2e0d3, type: 3}
+  pathParent: {fileID: 939515516}
+  pointSize: 0.02
 --- !u!114 &1806372284
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3748,49 +3751,6 @@ MonoBehaviour:
   pub_hz: 0.05
   XYJoy: {fileID: 1327206532}
   ZJoy: {fileID: 1715224645}
---- !u!114 &1806372285
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1806372275}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0085f7a876bfd4e098c2117b412077a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  uiope: {fileID: 1964926389}
-  ds4data:
-  - ds4button: 0
-    button: {fileID: 461902303}
-    panel: 1
-  - ds4button: 1
-    button: {fileID: 1549242423}
-    panel: 1
-  - ds4button: 2
-    button: {fileID: 1167131743}
-    panel: 1
-  - ds4button: 3
-    button: {fileID: 1476846088}
-    panel: 1
-  - ds4button: 15
-    button: {fileID: 748259394}
-    panel: 1
-  - ds4button: 0
-    button: {fileID: 461902303}
-    panel: 1
-  - ds4button: 1
-    button: {fileID: 1549242423}
-    panel: 1
-  - ds4button: 2
-    button: {fileID: 1167131743}
-    panel: 1
-  - ds4button: 15
-    button: {fileID: 748259394}
-    panel: 1
-  Rightjoy: {fileID: 1715224645}
-  Leftjoy: {fileID: 1327206532}
 --- !u!114 &1806372286
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3804,6 +3764,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   handle: {fileID: 292096049}
+--- !u!114 &1806372287
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1806372275}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 258cd36fff463915ab8b44ba71e6f91d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiope: {fileID: 1964926389}
+  ds4data: []
+  Rightjoy: {fileID: 1715224645}
+  Leftjoy: {fileID: 1327206532}
 --- !u!1 &1823439554
 GameObject:
   m_ObjectHideFlags: 0
@@ -3913,7 +3889,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -75, y: -75}
+  m_AnchoredPosition: {x: -75, y: -240}
   m_SizeDelta: {x: 150, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1834386580
@@ -4122,8 +4098,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 2436, y: 959.83}
+  m_AnchoredPosition: {x: 0, y: -82.49997}
+  m_SizeDelta: {x: 2436, y: 960}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1885918707
 MonoBehaviour:

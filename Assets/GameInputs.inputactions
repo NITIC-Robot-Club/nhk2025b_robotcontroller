@@ -9,7 +9,7 @@
                     "name": "Maru",
                     "type": "Button",
                     "id": "7ed971df-b1ce-495d-b869-7da4cef2d9e0",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -18,7 +18,7 @@
                     "name": "Batu",
                     "type": "Button",
                     "id": "bf60c9a8-f3a5-4760-8c44-f5ad6e2f2988",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -27,7 +27,7 @@
                     "name": "Sikaku",
                     "type": "Button",
                     "id": "3cfff595-a4e9-4b38-9587-56b6fa9c0ea1",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -45,7 +45,7 @@
                     "name": "Up",
                     "type": "Button",
                     "id": "ce1c4e5a-fb5c-4faa-bb80-6557d63d7605",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -72,7 +72,7 @@
                     "name": "Right",
                     "type": "Button",
                     "id": "ef818060-b153-49eb-a4a2-4a72cabef598",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -135,7 +135,7 @@
                     "name": "Lo",
                     "type": "Button",
                     "id": "5b6b1bb4-87d7-4f54-97b7-40b4908157e5",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -144,7 +144,7 @@
                     "name": "Ro",
                     "type": "Button",
                     "id": "7a254cb1-d725-4903-af50-ef680e2f8fe6",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -153,7 +153,7 @@
                     "name": "Share",
                     "type": "Button",
                     "id": "588099af-2497-4ecf-a7f5-beebff46a55c",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -162,7 +162,7 @@
                     "name": "Options",
                     "type": "Button",
                     "id": "0c7b56e0-e559-4769-bebe-3743f2a1ad72",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -455,8 +455,30 @@
                 },
                 {
                     "name": "",
+                    "id": "3e98cfa4-db22-4e1e-91d2-015b8b9bce44",
+                    "path": "<XInputController>/start",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Share",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "39be0ea8-bae5-46ee-94e8-b84e19d876f5",
                     "path": "<DualShockGamepad>/start",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Options",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6f50c250-9367-48df-b268-a8f7656a9d7a",
+                    "path": "<XInputController>/select",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
