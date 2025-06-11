@@ -36,6 +36,8 @@ public class UnitySubscriber : MonoBehaviour
     private sbyte[] ogData;
     private Texture2D ogTexture;
     private bool ogDirty = false;
+    private const int ogWidthDefault = 1750; // px
+    private const int ogHeightDefault = 960; // px
 
     //Pose Variables
     const float m2pixX = 2436.00f / 10.0f;          // px/m
@@ -91,7 +93,6 @@ public class UnitySubscriber : MonoBehaviour
     private RectTransform[] pointRectTransforms = new RectTransform[100];
     [SerializeField] GameObject pointPrefab;
     [SerializeField] GameObject pathParent;
-    [SerializeField] float pointSize = 0.02f;
 
     void Start()
     {
@@ -162,6 +163,8 @@ public class UnitySubscriber : MonoBehaviour
         if (ogDirty && ogData != null)
         {
             ogTexture = new Texture2D(ogWidth, ogHeight, TextureFormat.RGBA32, false);
+            ogTexture.filterMode = FilterMode.Point;
+            ogTexture.wrapMode = TextureWrapMode.Clamp;
             for (int y = 0; y < ogHeight; y++)
             {
                 for (int x = 0; x < ogWidth; x++)
@@ -176,10 +179,11 @@ public class UnitySubscriber : MonoBehaviour
                 }
             }
             ogTexture.Apply();
+
             if (rawImage != null)
             {
                 rawImage.texture = ogTexture;
-                rawImage.rectTransform.sizeDelta = new Vector2(ogWidth, ogHeight);
+                rawImage.rectTransform.sizeDelta = new Vector2(ogWidthDefault, ogHeightDefault);
             }
             ogDirty = false;
         }

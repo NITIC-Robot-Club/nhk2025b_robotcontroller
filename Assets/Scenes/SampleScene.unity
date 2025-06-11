@@ -3732,7 +3732,6 @@ MonoBehaviour:
   - {fileID: 1279105274}
   pointPrefab: {fileID: 3683263056571184661, guid: 679060c35af08462da3995233ec2e0d3, type: 3}
   pathParent: {fileID: 939515516}
-  pointSize: 0.02
 --- !u!114 &1806372284
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4098,8 +4097,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -82.49997}
-  m_SizeDelta: {x: 2436, y: 960}
+  m_AnchoredPosition: {x: 258, y: -82.5}
+  m_SizeDelta: {x: 1920, y: 960}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1885918707
 MonoBehaviour:
