@@ -31,5 +31,6 @@ public class DataList : MonoBehaviour
     }
     void SendMsg(string msg){
         pubcon.queue.Enqueue(msg);
+        Debug.Log("SendMsg: " + msg);
     }
 }

@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEditor;
  
  
-[CustomPropertyDrawer(typeof (newDs4button))]
+[CustomPropertyDrawer(typeof (NewDs4button))]
 public class NewDs4Draw : PropertyDrawer
 {
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)

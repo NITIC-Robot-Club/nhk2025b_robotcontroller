@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 8300459580385191364}
   - component: {fileID: 6753692477957734827}
   m_Layer: 5
-  m_Name: Toggle
+  m_Name: toggle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

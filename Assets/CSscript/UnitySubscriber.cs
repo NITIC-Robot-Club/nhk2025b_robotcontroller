@@ -36,11 +36,11 @@ public class UnitySubscriber : MonoBehaviour
     private sbyte[] ogData;
     private Texture2D ogTexture;
     private bool ogDirty = false;
-    private const int ogWidthDefault = 1750; // px
-    private const int ogHeightDefault = 960; // px
+    private const int ogWidthDefault = 1750;        // px
+    private const int ogHeightDefault = 960;        // px
 
     //Pose Variables
-    const float m2pixX = 2436.00f / 10.0f;          // px/m
+    const float m2pixX = 1750.00f / 10.0f;          // px/m
     const float m2pixY = 960.00f / 5.0f;            // px/m
     const float anchorX = -75f;                     // px
     const float anchorY = -240f;                    // px
@@ -115,8 +115,8 @@ public class UnitySubscriber : MonoBehaviour
             points[i].transform.SetParent(pathParent.transform);
             points[i].transform.localScale = Vector3.one;
             pointRectTransforms[i] = (RectTransform)points[i].transform;
-            pointRectTransforms[i].anchorMin = new Vector2(1, 0);
-            pointRectTransforms[i].anchorMax = new Vector2(1, 0);
+            pointRectTransforms[i].anchorMin = new Vector2(1, 1);
+            pointRectTransforms[i].anchorMax = new Vector2(1, 1);
         }
     }
 
@@ -137,6 +137,7 @@ public class UnitySubscriber : MonoBehaviour
             }
         }
 
+        //Visualize Robot/Goal/Lookahead Pose
         lookaheadRectTransform.anchoredPosition = new Vector3(lposX, lposY, 0f);
         lookahead.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, loriZ, loriW);
         goalRectTransform.anchoredPosition = new Vector3(gposX, gposY, 0f);
@@ -144,6 +145,7 @@ public class UnitySubscriber : MonoBehaviour
         robotRectTransform.anchoredPosition = new Vector3(posX, posY, 0f);
         robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, oriZ, oriW);
 
+        //Visualize Swerve Pose
         if (swerveText0 != null) swerveText0.SetText($"WheelAngle0: {wheelAngle[0]}°\nWheelSpeed0: {wheelSpeed[0]}rpm");
         if (swerveText1 != null) swerveText1.SetText($"WheelAngle1: {wheelAngle[1]}°\nWheelSpeed1: {wheelSpeed[1]}rpm");
         if (swerveText2 != null) swerveText2.SetText($"WheelAngle2: {wheelAngle[2]}°\nWheelSpeed2: {wheelSpeed[2]}rpm");
@@ -160,6 +162,7 @@ public class UnitySubscriber : MonoBehaviour
             swerveRectTransform[i].transform.rotation = new Quaternion(0f, 0f, soriZ, soriW);
         }
 
+        //Visualize OccupancyGrid
         if (ogDirty && ogData != null)
         {
             ogTexture = new Texture2D(ogWidth, ogHeight, TextureFormat.RGBA32, false);
@@ -188,17 +191,21 @@ public class UnitySubscriber : MonoBehaviour
             ogDirty = false;
         }
 
-        if(subscribedPath != null && subscribedPath.Poses.Length > 0){
+        //Visualize Path
+        if(subscribedPath != null && subscribedPath.Poses.Length > 0)
+        {
             int setmax=0;
-            if(subscribedPath.Poses.Length<maxPointCount)setmax= subscribedPath.Poses.Length;
+            if(subscribedPath.Poses.Length<maxPointCount) setmax= subscribedPath.Poses.Length;
             else setmax = 100;
             for(int i = 0;i < maxPointCount;i++){
-                int num = i * subscribedPath.Poses.Length/maxPointCount;
+                int num = i*subscribedPath.Poses.Length/maxPointCount;
                 if(num > (subscribedPath.Poses.Length-1))num = subscribedPath.Poses.Length-1;
-                float x = -(float)subscribedPath.Poses[num].Pose.Position.X * m2pixY + anchorX;
-                float y = -(float)subscribedPath.Poses[num].Pose.Position.Y * m2pixX + anchorY;
+
+                float px = -(float)subscribedPath.Poses[num].Pose.Position.X*m2pixY;
+                float py = -(float)subscribedPath.Poses[num].Pose.Position.Y*m2pixX;
+
                 pointRectTransforms[i] = (RectTransform)points[i].transform;
-                pointRectTransforms[i].anchoredPosition = new Vector3(x,y,0);
+                pointRectTransforms[i].anchoredPosition = new Vector3(px, py, 0);
             }
         }
     }
@@ -213,16 +220,16 @@ public class UnitySubscriber : MonoBehaviour
 
     void currentposeCallback(Ps msg)
     {
-        posX = -(float)msg.Pose.Position.X * m2pixY + anchorX;
-        posY = -(float)msg.Pose.Position.Y * m2pixX + anchorY;
+        posX = -(float)msg.Pose.Position.X * m2pixY /*+ anchorX*/;
+        posY = -(float)msg.Pose.Position.Y * m2pixX /*+ anchorY*/;
         oriZ = -(float)msg.Pose.Orientation.Z;
         oriW = -(float)msg.Pose.Orientation.W;
     }
 
     void goalposeCallback(Ps msg)
     {
-        gposX = -(float)msg.Pose.Position.X * m2pixY + anchorX;
-        gposY = -(float)msg.Pose.Position.Y * m2pixX + anchorY;
+        gposX = -(float)msg.Pose.Position.X * m2pixY /*+ anchorX*/;
+        gposY = -(float)msg.Pose.Position.Y * m2pixX /*+ anchorY*/;
         goriZ = -(float)msg.Pose.Orientation.Z;
         goriW = -(float)msg.Pose.Orientation.W;
     }
@@ -234,8 +241,8 @@ public class UnitySubscriber : MonoBehaviour
 
     void lookaheadposeCallback(Ps msg)
     {
-        lposX = -(float)msg.Pose.Position.X * m2pixY + anchorX;
-        lposY = -(float)msg.Pose.Position.Y * m2pixX + anchorY;
+        lposX = -(float)msg.Pose.Position.X * m2pixY /*+ anchorX*/;
+        lposY = -(float)msg.Pose.Position.Y * m2pixX /*+ anchorY*/;
         loriZ = -(float)msg.Pose.Orientation.Z;
         loriW = -(float)msg.Pose.Orientation.W;
     }
