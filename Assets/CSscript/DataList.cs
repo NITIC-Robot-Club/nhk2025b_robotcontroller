@@ -6,17 +6,18 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using ROS2;
 using topicSt = std_msgs.msg.String;
-//using Ts = twistring.msg.Twistring;
+
 [System.Serializable]
 public class Data {
     public Button button;
     public string topic;
 }
+
 public class DataList : MonoBehaviour
 {
     [SerializeField] List<Data> data;
     private UnityPublisher pubcon;
-    // Start is called before the first frame update
+    
     void Start(){
         Debug.Log(data.Count);
         pubcon = GameObject.Find("Pubcontoroller").GetComponent<UnityPublisher>();

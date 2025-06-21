@@ -9,6 +9,8 @@ using topicSt = std_msgs.msg.String;
 using twist = geometry_msgs.msg.Twist;
 //using Ts = twistring.msg.Twistring;
 using TS = geometry_msgs.msg.TwistStamped;
+using Int32 = std_msgs.msg.Int32;
+using Co = nhk2025b_msgs.msg.Command;
 using TMPro;
 public class UnityPublisher : MonoBehaviour
 {
@@ -19,6 +21,8 @@ public class UnityPublisher : MonoBehaviour
     //private IPublisher<Ts> pub;
     //private int target_num = 0;
     [System.NonSerialized] public Queue<string> queue = new Queue<string>();
+    [System.NonSerialized] public Queue<int> intQueue = new Queue<int>();
+    [System.NonSerialized] public Queue<bool> boolQueue = new Queue<bool>();
     [System.NonSerialized] public Queue<twist> twistmsgs = new Queue<twist>();
     //private IEnumerator routine;
     //[SerializeField] private string twistringTopicName = "/Twistring_topic_name";
@@ -33,11 +37,24 @@ public class UnityPublisher : MonoBehaviour
     private IPublisher<TS> joy_pub;
     private IEnumerator joy_routine;
 
+    //publish status
+    private IEnumerator statusRoutine;
+    private IPublisher<Int32> status_pub;
+
+    //publish automate ready
+    [SerializeField] Button automateReadyButton;
+    private bool isAutomateReady = true;
+    private IEnumerator automateReadyRoutine;
+    private IPublisher<Co> automateReady_pub;
+
     void Start()
     {
         TryGetComponent(out ros2Unity);
         //routine = PublishTwistring();
         joy_routine = JoyAsync();
+        statusRoutine = publishStatus();
+        automateReadyRoutine = publishAutomateReady();
+        automateReadyButton.onClick.AddListener(() => automateReadyButtonClicked());
     }
 
     void Update()
@@ -51,8 +68,12 @@ public class UnityPublisher : MonoBehaviour
                 ros2Node = ros2Unity.CreateNode("UnityPubNode");
                 //pub = ros2Node.CreatePublisher<Ts>(twistringTopicName);
                 joy_pub = ros2Node.CreatePublisher<TS>(twiststampedTopicName);
+                status_pub = ros2Node.CreatePublisher<Int32>("/behavior/set_status_num");
+                automateReady_pub = ros2Node.CreatePublisher<Co>("/command");
                 //StartCoroutine(routine);
                 StartCoroutine(joy_routine);
+                StartCoroutine(statusRoutine);
+                StartCoroutine(automateReadyRoutine);
             }
         }
     }
@@ -93,6 +114,49 @@ public class UnityPublisher : MonoBehaviour
             }
             yield return new WaitForSeconds(pub_hz);
         }
+    }
+
+    IEnumerator publishStatus()
+    {
+        while (true)
+        {
+            if (intQueue.Count != 0)
+            {
+                Int32 status_msg = new Int32();
+                status_msg.Data = intQueue.Dequeue();
+                if (is_main)
+                {
+                    status_pub.Publish(status_msg);
+                }
+            }
+            yield return new WaitForSeconds(pub_hz);
+        }
+    }
+
+    IEnumerator publishAutomateReady()
+    {
+        while (true)
+        {
+            if (boolQueue.Count != 0)
+            {
+                ROS2Clock clock = new ROS2Clock();
+                Co sendCommand = new Co
+                {
+                    Header = new std_msgs.msg.Header()
+                };
+                clock.UpdateROSClockTime(sendCommand.Header.Stamp);
+                sendCommand.Header.Frame_id = "base_link";
+                sendCommand.Automate_ready = boolQueue.Dequeue();
+                automateReady_pub.Publish(sendCommand);
+            }
+            yield return new WaitForSeconds(pub_hz);
+        }
+    }
+
+    private void automateReadyButtonClicked()
+    {
+        isAutomateReady = !isAutomateReady;
+        boolQueue.Enqueue(isAutomateReady);
     }
 
     public void ResetJoystickInput()

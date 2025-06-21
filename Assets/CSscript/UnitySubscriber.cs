@@ -12,13 +12,15 @@ using Ps = geometry_msgs.msg.PoseStamped;
 using Pa = nav_msgs.msg.Path;
 using TS = geometry_msgs.msg.TwistStamped;
 using Sw = nhk2025b_msgs.msg.Swerve;
-using Rs = nhk2025b_msgs.msg.RobotStatus;
+using Sa = nhk2025b_msgs.msg.StateArray;
 using TMPro;
+using ParameterEvent = rcl_interfaces.msg.ParameterEvent;
 
 public class UnitySubscriber : MonoBehaviour
 {
     private ROS2UnityComponent ros2Unity;
     private ROS2Node ros2Node;
+    private UnityPublisher unityPublisher;
     private ISubscription<Og> map_sub;
     private ISubscription<Ps> currentpose_sub;
     private ISubscription<Ps> goalpose_sub;
@@ -26,6 +28,8 @@ public class UnitySubscriber : MonoBehaviour
     private ISubscription<Ps> lookaheadpose_sub;
     private ISubscription<Sw> result_sub;
     private ISubscription<Sw> cmd_sub;
+    private ISubscription<Sa> state_sub;
+    private ISubscription<ParameterEvent> parameter_sub;
 
     private Queue<string> recqueue = new Queue<string>();
 
@@ -38,6 +42,8 @@ public class UnitySubscriber : MonoBehaviour
     private bool ogDirty = false;
     private const int ogWidthDefault = 1750;        // px
     private const int ogHeightDefault = 960;        // px
+    private bool ogIsRed = false;
+    private bool isRed = false;
 
     //Pose Variables
     const float m2pixX = 1750.00f / 10.0f;          // px/m
@@ -94,8 +100,23 @@ public class UnitySubscriber : MonoBehaviour
     [SerializeField] GameObject pointPrefab;
     [SerializeField] GameObject pathParent;
 
+    //Visualize Robot State
+    [SerializeField] private TMP_Text currentStateText;
+    private string currentState = "Current State";
+    [SerializeField] GameObject buttonPrefab;
+    [SerializeField] GameObject buttonParent;
+    private int stateSize;
+    private int[] stateID = new int[50];
+    private string[] stateName = new string[50];
+    private int[] prevStateID = new int[50];
+    private string[] prevStateName = new string[50];
+    private int prevStateSize = 0;
+    private bool stateChanged = false;
+    private Vector2 initialPosition = new Vector2(0, 500);
+
     void Start()
     {
+        unityPublisher = GameObject.Find("Pubcontoroller").GetComponent<UnityPublisher>();
         TryGetComponent(out ros2Unity);
         robotRectTransform = (RectTransform)robot.transform;
         robotRectTransform.transform.rotation = Quaternion.Euler(0f, 0f, 90f);
@@ -134,8 +155,12 @@ public class UnitySubscriber : MonoBehaviour
                 lookaheadpose_sub = ros2Node.CreateSubscription<Ps>("/control/lookahead_pose", lookaheadposeCallback);
                 result_sub = ros2Node.CreateSubscription<Sw>("/swerve/result", resultCallback);
                 cmd_sub = ros2Node.CreateSubscription<Sw>("/visualization/swerve", cmdCallback);
+                state_sub = ros2Node.CreateSubscription<Sa>("/behavior/avaiable_state_array", stateCallback);
+                parameter_sub = ros2Node.CreateSubscription<ParameterEvent>("/parameter_events", parameterCallback);
             }
         }
+
+        isRed = ogIsRed;
 
         //Visualize Robot/Goal/Lookahead Pose
         lookaheadRectTransform.anchoredPosition = new Vector3(lposX, lposY, 0f);
@@ -208,6 +233,46 @@ public class UnitySubscriber : MonoBehaviour
                 pointRectTransforms[i].anchoredPosition = new Vector3(px, py, 0);
             }
         }
+
+        //Visualize Robot State
+        currentStateText.text = currentState;
+        if (stateChanged && stateSize > 0)
+        {
+            foreach (Transform child in buttonParent.transform)
+            {
+                Destroy(child.gameObject);
+            }
+            for (int i = 0; i < stateSize; i++)
+            {
+                GameObject button = Instantiate(buttonPrefab);
+                button.transform.SetParent(buttonParent.transform, false);
+                button.transform.localScale = Vector3.one;
+                button.GetComponent<RectTransform>().anchoredPosition = initialPosition + new Vector2(0, -i * 125);
+                button.GetComponentInChildren<TMP_Text>().text = stateID[i] + ": " + stateName[i];
+                int idx = i;
+                button.GetComponent<Button>().onClick.AddListener(() => {
+                    Debug.Log(stateID[idx] + ": " + stateName[idx]);
+                    sendStatus(stateID[idx]);
+                });
+            }
+            stateChanged = false;
+        }
+
+        if (stateSize != prevStateSize || !stateID.SequenceEqual(prevStateID) || !stateName.SequenceEqual(prevStateName))
+        {
+            stateChanged = true;
+        }
+        else
+        {
+            stateChanged = false;
+        }
+
+        if (stateChanged)
+        {
+            prevStateSize = stateSize;
+            Array.Copy(stateID, prevStateID, stateSize);
+            Array.Copy(stateName, prevStateName, stateSize);
+        }
     }
 
     void mappingCallback(Og msg)
@@ -216,20 +281,21 @@ public class UnitySubscriber : MonoBehaviour
         ogHeight = (int)msg.Info.Height;
         ogData = (sbyte[])msg.Data.Clone();
         ogDirty = true;
+
     }
 
     void currentposeCallback(Ps msg)
     {
-        posX = -(float)msg.Pose.Position.X * m2pixY /*+ anchorX*/;
-        posY = -(float)msg.Pose.Position.Y * m2pixX /*+ anchorY*/;
+        posX = -(float)msg.Pose.Position.X * m2pixY;
+        posY = -(float)msg.Pose.Position.Y * m2pixX;
         oriZ = -(float)msg.Pose.Orientation.Z;
         oriW = -(float)msg.Pose.Orientation.W;
     }
 
     void goalposeCallback(Ps msg)
     {
-        gposX = -(float)msg.Pose.Position.X * m2pixY /*+ anchorX*/;
-        gposY = -(float)msg.Pose.Position.Y * m2pixX /*+ anchorY*/;
+        gposX = -(float)msg.Pose.Position.X * m2pixY;
+        gposY = -(float)msg.Pose.Position.Y * m2pixX;
         goriZ = -(float)msg.Pose.Orientation.Z;
         goriW = -(float)msg.Pose.Orientation.W;
     }
@@ -241,8 +307,8 @@ public class UnitySubscriber : MonoBehaviour
 
     void lookaheadposeCallback(Ps msg)
     {
-        lposX = -(float)msg.Pose.Position.X * m2pixY /*+ anchorX*/;
-        lposY = -(float)msg.Pose.Position.Y * m2pixX /*+ anchorY*/;
+        lposX = -(float)msg.Pose.Position.X * m2pixY;
+        lposY = -(float)msg.Pose.Position.Y * m2pixX;
         loriZ = -(float)msg.Pose.Orientation.Z;
         loriW = -(float)msg.Pose.Orientation.W;
     }
@@ -270,5 +336,52 @@ public class UnitySubscriber : MonoBehaviour
 
     void cmdCallback(Sw msg)
     {
+    }
+
+    void stateCallback(Sa msg)
+    {
+        stateChanged = false;
+        stateSize = msg.State.Length;
+        currentState = msg.Name;
+        if (stateSize != prevStateSize)
+        {
+            stateChanged = true;
+        }
+        else
+        {
+            for (int i = 0; i < stateSize; i++)
+            {
+                if (stateID[i] != msg.State[i].Id || stateName[i] != msg.State[i].Name)
+                {
+                    stateChanged = true;
+                    break;
+                }
+            }
+        }
+        for (int i = 0; i < stateSize; i++)
+        {
+            stateID[i] = msg.State[i].Id;
+            stateName[i] = msg.State[i].Name;
+        }
+        prevStateSize = stateSize;
+        Array.Copy(stateID, prevStateID, stateSize);
+        Array.Copy(stateName, prevStateName, stateSize);
+    }
+
+    void parameterCallback(ParameterEvent msg)
+    {
+        foreach (var parameter in msg.Changed_parameters)
+        {
+            if (parameter.Name == "/behavior/is_red")
+            {
+                ogIsRed = parameter.Value.Bool_value;
+            }
+        }
+    }
+
+    void sendStatus(int status)
+    {
+        unityPublisher.intQueue.Enqueue(status);
+        Debug.Log("SendStatus: " + status.ToString());
     }
 }

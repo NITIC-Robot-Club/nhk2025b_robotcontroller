@@ -110,7 +110,7 @@ public class ControllerActions : MonoBehaviour
         List<NewDs4button> result = ds4data.FindAll(m => m.ds4button == OsuButton);
         for(int count = 0;count < result.Count;count++){
             if(result[count].panel == nowpanel || result[count].panel == PanelList.CMD){
-                Debug.Log("New:"+result[count].ds4button.ToString());
+                Debug.Log("Clicked "+result[count].ds4button.ToString());
                 result[count].button.onClick.Invoke();
             }
         }
