@@ -6,6 +6,7 @@ using ROS2;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using TMPro;
 using topicSt = std_msgs.msg.String;
 using Og = nav_msgs.msg.OccupancyGrid;
 using Ps = geometry_msgs.msg.PoseStamped;
@@ -13,8 +14,7 @@ using Pa = nav_msgs.msg.Path;
 using TS = geometry_msgs.msg.TwistStamped;
 using Sw = nhk2025b_msgs.msg.Swerve;
 using Sa = nhk2025b_msgs.msg.StateArray;
-using TMPro;
-using ParameterEvent = rcl_interfaces.msg.ParameterEvent;
+using Pe = rcl_interfaces.msg.ParameterEvent;
 
 public class UnitySubscriber : MonoBehaviour
 {
@@ -29,7 +29,7 @@ public class UnitySubscriber : MonoBehaviour
     private ISubscription<Sw> result_sub;
     private ISubscription<Sw> cmd_sub;
     private ISubscription<Sa> state_sub;
-    private ISubscription<ParameterEvent> parameter_sub;
+    private ISubscription<Pe> parameter_sub;
 
     private Queue<string> recqueue = new Queue<string>();
 
@@ -48,14 +48,14 @@ public class UnitySubscriber : MonoBehaviour
     //Pose Variables
     const float m2pixX = 1750.00f / 10.0f;          // px/m
     const float m2pixY = 960.00f / 5.0f;            // px/m
-    const float anchorX = -75f;                     // px
-    const float anchorY = -240f;                    // px
+    // const float anchorX = -75f;                     // px
+    // const float anchorY = -75f;                     // px
 
     //Current Pose Subscriber
     public GameObject robot;
     private RectTransform robotRectTransform;
-    private float posX = anchorX;
-    private float posY = anchorY;
+    private float posX;// = anchorX;
+    private float posY;// = anchorY;
     private float oriZ;
     private float oriW;
 
@@ -118,18 +118,28 @@ public class UnitySubscriber : MonoBehaviour
     {
         unityPublisher = GameObject.Find("Pubcontoroller").GetComponent<UnityPublisher>();
         TryGetComponent(out ros2Unity);
+
+        //Initialize Robot/Goal/Lookahead Transforms
         robotRectTransform = (RectTransform)robot.transform;
         robotRectTransform.transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+        robotRectTransform.anchorMin = new Vector2(1, 1);
+        robotRectTransform.anchorMax = new Vector2(1, 1);
         goalRectTransform = (RectTransform)goal.transform;
         goalRectTransform.transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+        goalRectTransform.anchorMin = new Vector2(1, 1);
+        goalRectTransform.anchorMax = new Vector2(1, 1);
         lookaheadRectTransform = (RectTransform)lookahead.transform;
         lookaheadRectTransform.transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+        lookaheadRectTransform.anchorMin = new Vector2(1, 1);
+        lookaheadRectTransform.anchorMax = new Vector2(1, 1);
 
+        //Initialize Swerve Transforms
         for (int i = 0; i < 4; i++)
         {
             swerveRectTransform[i] = (RectTransform)swerve[i].transform;
         }
 
+        //Initialize Path Transforms
         for (int i = 0; i < maxPointCount; i++)
         {
             points[i] = Instantiate(pointPrefab);
@@ -138,6 +148,7 @@ public class UnitySubscriber : MonoBehaviour
             pointRectTransforms[i] = (RectTransform)points[i].transform;
             pointRectTransforms[i].anchorMin = new Vector2(1, 1);
             pointRectTransforms[i].anchorMax = new Vector2(1, 1);
+            pointRectTransforms[i].pivot = new Vector2(1, 0);
         }
     }
 
@@ -156,19 +167,43 @@ public class UnitySubscriber : MonoBehaviour
                 result_sub = ros2Node.CreateSubscription<Sw>("/swerve/result", resultCallback);
                 cmd_sub = ros2Node.CreateSubscription<Sw>("/visualization/swerve", cmdCallback);
                 state_sub = ros2Node.CreateSubscription<Sa>("/behavior/avaiable_state_array", stateCallback);
-                parameter_sub = ros2Node.CreateSubscription<ParameterEvent>("/parameter_events", parameterCallback);
+                parameter_sub = ros2Node.CreateSubscription<Pe>("/parameter_events", parameterCallback);
             }
         }
 
         isRed = ogIsRed;
 
-        //Visualize Robot/Goal/Lookahead Pose
-        lookaheadRectTransform.anchoredPosition = new Vector3(lposX, lposY, 0f);
-        lookahead.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, loriZ, loriW);
-        goalRectTransform.anchoredPosition = new Vector3(gposX, gposY, 0f);
-        goal.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, goriZ, goriW);
-        robotRectTransform.anchoredPosition = new Vector3(posX, posY, 0f);
-        robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, oriZ, oriW);
+        //Visualize Robot/Goal/Lookahead Positions
+        if (!isRed)
+        {
+            lookaheadRectTransform.anchorMin = new Vector2(1, 1);
+            lookaheadRectTransform.anchorMax = new Vector2(1, 1);
+            goalRectTransform.anchorMin = new Vector2(1, 1);
+            goalRectTransform.anchorMax = new Vector2(1, 1);
+            robotRectTransform.anchorMin = new Vector2(1, 1);
+            robotRectTransform.anchorMax = new Vector2(1, 1);
+            lookaheadRectTransform.anchoredPosition = new Vector3(lposX, lposY, 0f);
+            lookahead.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, loriZ, loriW);
+            goalRectTransform.anchoredPosition = new Vector3(gposX, gposY, 0f);
+            goal.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, goriZ, goriW);
+            robotRectTransform.anchoredPosition = new Vector3(posX, posY, 0f);
+            robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, oriZ, oriW);
+        }
+        else
+        {
+            lookaheadRectTransform.anchorMin = new Vector2(1, 0);
+            lookaheadRectTransform.anchorMax = new Vector2(1, 0);
+            goalRectTransform.anchorMin = new Vector2(1, 0);
+            goalRectTransform.anchorMax = new Vector2(1, 0);
+            robotRectTransform.anchorMin = new Vector2(1, 0);
+            robotRectTransform.anchorMax = new Vector2(1, 0);
+            lookaheadRectTransform.anchoredPosition = new Vector3(lposX, lposY, 0f);
+            lookahead.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, loriZ, loriW);
+            goalRectTransform.anchoredPosition = new Vector3(gposX, gposY, 0f);
+            goal.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, goriZ, goriW);
+            robotRectTransform.anchoredPosition = new Vector3(posX, posY, 0f);
+            robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, oriZ, oriW);
+        }
 
         //Visualize Swerve Pose
         if (swerveText0 != null) swerveText0.SetText($"WheelAngle0: {wheelAngle[0]}°\nWheelSpeed0: {wheelSpeed[0]}rpm");
@@ -286,6 +321,14 @@ public class UnitySubscriber : MonoBehaviour
 
     void currentposeCallback(Ps msg)
     {
+        if (msg.Pose.Position.Y < 0)
+        {
+            ogIsRed = true;
+        }
+        else
+        {
+            ogIsRed = false;
+        }
         posX = -(float)msg.Pose.Position.X * m2pixY;
         posY = -(float)msg.Pose.Position.Y * m2pixX;
         oriZ = -(float)msg.Pose.Orientation.Z;
@@ -294,6 +337,14 @@ public class UnitySubscriber : MonoBehaviour
 
     void goalposeCallback(Ps msg)
     {
+        if (msg.Pose.Position.Y < 0)
+        {
+            ogIsRed = true;
+        }
+        else
+        {
+            ogIsRed = false;
+        }
         gposX = -(float)msg.Pose.Position.X * m2pixY;
         gposY = -(float)msg.Pose.Position.Y * m2pixX;
         goriZ = -(float)msg.Pose.Orientation.Z;
@@ -307,6 +358,14 @@ public class UnitySubscriber : MonoBehaviour
 
     void lookaheadposeCallback(Ps msg)
     {
+        if (msg.Pose.Position.Y < 0)
+        {
+            ogIsRed = true;
+        }
+        else
+        {
+            ogIsRed = false;
+        }
         lposX = -(float)msg.Pose.Position.X * m2pixY;
         lposY = -(float)msg.Pose.Position.Y * m2pixX;
         loriZ = -(float)msg.Pose.Orientation.Z;
@@ -368,15 +427,15 @@ public class UnitySubscriber : MonoBehaviour
         Array.Copy(stateName, prevStateName, stateSize);
     }
 
-    void parameterCallback(ParameterEvent msg)
+    void parameterCallback(Pe msg)
     {
-        foreach (var parameter in msg.Changed_parameters)
-        {
-            if (parameter.Name == "/behavior/is_red")
-            {
-                ogIsRed = parameter.Value.Bool_value;
-            }
-        }
+        // foreach (var parameter in msg.Changed_parameters)
+        // {
+        //     if (parameter.Name == "is_red")
+        //     {
+        //         ogIsRed = parameter.Value.Bool_value;
+        //     }
+        // }
     }
 
     void sendStatus(int status)
