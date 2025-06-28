@@ -2736,7 +2736,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 838226690}
   m_HandleRect: {fileID: 838226689}
   m_Direction: 2
-  m_Value: -0.00000034902163
+  m_Value: 0
   m_Size: 0.7329643
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -3307,7 +3307,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 349.7501}
+  m_AnchoredPosition: {x: 0, y: 349.75003}
   m_SizeDelta: {x: 0, y: 1309.75}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &1190504189
@@ -4190,8 +4190,6 @@ MonoBehaviour:
     topic: emergency
   - button: {fileID: 1167131743}
     topic: manual
-  - button: {fileID: 748259394}
-    topic: info
   - button: {fileID: 690118299}
     topic: restart
 --- !u!114 &1806372279

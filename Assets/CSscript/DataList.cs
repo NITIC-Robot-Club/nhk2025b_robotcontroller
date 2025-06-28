@@ -18,19 +18,21 @@ public class DataList : MonoBehaviour
     [SerializeField] List<Data> data;
     private UnityPublisher pubcon;
     
-    void Start(){
+    void Start()
+    {
         Debug.Log(data.Count);
         pubcon = GameObject.Find("Pubcontoroller").GetComponent<UnityPublisher>();
         
-        for(int count = 0;count < data.Count;count++){
+        for(int count = 0;count < data.Count;count++)
+        {
             Button button1 = data[count].button;
             string string1 = data[count].topic;
             button1.onClick.AddListener(() => SendMsg(string1));
         }
     }
-    void Update(){
-    }
-    void SendMsg(string msg){
+
+    void SendMsg(string msg)
+    {
         pubcon.queue.Enqueue(msg);
         Debug.Log("SendMsg: " + msg);
     }

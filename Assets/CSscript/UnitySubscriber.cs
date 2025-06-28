@@ -14,7 +14,6 @@ using Pa = nav_msgs.msg.Path;
 using TS = geometry_msgs.msg.TwistStamped;
 using Sw = nhk2025b_msgs.msg.Swerve;
 using Sa = nhk2025b_msgs.msg.StateArray;
-using Pe = rcl_interfaces.msg.ParameterEvent;
 
 public class UnitySubscriber : MonoBehaviour
 {
@@ -29,7 +28,6 @@ public class UnitySubscriber : MonoBehaviour
     private ISubscription<Sw> result_sub;
     private ISubscription<Sw> cmd_sub;
     private ISubscription<Sa> state_sub;
-    private ISubscription<Pe> parameter_sub;
 
     private Queue<string> recqueue = new Queue<string>();
 
@@ -164,7 +162,6 @@ public class UnitySubscriber : MonoBehaviour
                 result_sub = ros2Node.CreateSubscription<Sw>("/swerve/result", resultCallback);
                 cmd_sub = ros2Node.CreateSubscription<Sw>("/visualization/swerve", cmdCallback);
                 state_sub = ros2Node.CreateSubscription<Sa>("/behavior/avaiable_state_array", stateCallback);
-                parameter_sub = ros2Node.CreateSubscription<Pe>("/parameter_events", parameterCallback);
             }
         }
 
@@ -246,7 +243,7 @@ public class UnitySubscriber : MonoBehaviour
         //Visualize Path
         if(subscribedPath != null && subscribedPath.Poses.Length > 0)
         {
-            int setmax=0;
+            int setmax = 0;
             if(subscribedPath.Poses.Length<maxPointCount) setmax= subscribedPath.Poses.Length;
             else setmax = 100;
             for(int i = 0;i < maxPointCount;i++){
@@ -429,17 +426,6 @@ public class UnitySubscriber : MonoBehaviour
         prevStateSize = stateSize;
         Array.Copy(stateID, prevStateID, stateSize);
         Array.Copy(stateName, prevStateName, stateSize);
-    }
-
-    void parameterCallback(Pe msg)
-    {
-        // foreach (var parameter in msg.Changed_parameters)
-        // {
-        //     if (parameter.Name == "is_red")
-        //     {
-        //         ogIsRed = parameter.Value.Bool_value;
-        //     }
-        // }
     }
 
     void sendStatus(int status)

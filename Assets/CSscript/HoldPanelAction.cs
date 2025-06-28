@@ -25,7 +25,8 @@ public class HoldPanelAction : MonoBehaviour, IPointerDownHandler, IPointerUpHan
         _hold.action.Enable();
     }
 
-    private void OnDestroy() {
+    private void OnDestroy() 
+    {
         if (_hold == null) return;
         _hold.action.performed -= OnHold;
         _hold.action.canceled -= OffHold;

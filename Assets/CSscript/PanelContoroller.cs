@@ -23,10 +23,6 @@ public class PanelContoroller : MonoBehaviour
         autoOn();
     }
 
-    void Update()
-    {
-    }
-
     void autoOn(){
         is_autoPanel = true;
         is_manualPanel = false;

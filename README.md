@@ -13,7 +13,7 @@ ROS2 distribution:
 
 Unity Editor Version: 
 ```
-- 2022.3.16f1
+- 2022.3.62f1
 ```
 
 Required Editor Modules:
@@ -32,6 +32,7 @@ git clone git@github.com:NITIC-Robot-Club/nhk2025b_robotcontroller.git
 - Open ```File``` > ```Buid Settings```.
 - Switch platform to ```Android```.
 - Check a ```Development Build``` box.
+- You can also download the latest build from releases.
 ## How to Build for Controller
 ### Step0 Environmental Preparation(optionally)
 - Install softwares
@@ -112,5 +113,3 @@ cd ros2-for-unity-for-android
 ```
 - You can add ```--clean-install``` or ```-c```.
 - Unity Asset is ready to import into your Unity project. You can find it in ```install/asset/``` directory.
-
-## How to Build Custom Message for Android

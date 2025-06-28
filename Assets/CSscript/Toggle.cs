@@ -22,7 +22,8 @@ public class Toggle : MonoBehaviour
     [SerializeField] private string originalText = "/originalText";
     [SerializeField] private string targetText = "/targetText";
     
-    private void Start() {
+    private void Start() 
+    {
         handlePosX = Mathf.Abs(handle.anchoredPosition.x);
         Value = onAwake;
         UpdateToggle(0);
@@ -30,12 +31,14 @@ public class Toggle : MonoBehaviour
         displayText.color = ORIGINAL_TEXT_COLOR;
     }
 
-    public void SwitchToggle() {
+    public void SwitchToggle() 
+    {
         Value = !Value;
         UpdateToggle(SWITCH_DURATION);
     }
 
-    private void UpdateToggle(float duration) {
+    private void UpdateToggle(float duration) 
+    {
         var bgColor = Value ? ON_BG_COLOR : OFF_BG_COLOR;
         var handleDestX = Value ? handlePosX : -handlePosX;
 
@@ -45,12 +48,15 @@ public class Toggle : MonoBehaviour
             .Join(handle.DOAnchorPosX(handleDestX, duration / 2));
     }
 
-    private void Update() {
-        if (targetToggle.Value) {
+    private void Update() 
+    {
+        if (targetToggle.Value) 
+        {
             displayText.text = targetText;
             displayText.color = ORIGINAL_TEXT_COLOR;
         }
-        else {
+        else 
+        {
             displayText.text = originalText;
             displayText.color = TARGET_TEXT_COLOR;
         }
