@@ -48,14 +48,12 @@ public class UnitySubscriber : MonoBehaviour
     //Pose Variables
     const float m2pixX = 1750.00f / 10.0f;          // px/m
     const float m2pixY = 960.00f / 5.0f;            // px/m
-    // const float anchorX = -75f;                     // px
-    // const float anchorY = -75f;                     // px
 
     //Current Pose Subscriber
     public GameObject robot;
     private RectTransform robotRectTransform;
-    private float posX;// = anchorX;
-    private float posY;// = anchorY;
+    private float posX;
+    private float posY;
     private float oriZ;
     private float oriW;
 
@@ -148,7 +146,6 @@ public class UnitySubscriber : MonoBehaviour
             pointRectTransforms[i] = (RectTransform)points[i].transform;
             pointRectTransforms[i].anchorMin = new Vector2(1, 1);
             pointRectTransforms[i].anchorMax = new Vector2(1, 1);
-            pointRectTransforms[i].pivot = new Vector2(1, 0);
         }
     }
 
@@ -158,7 +155,7 @@ public class UnitySubscriber : MonoBehaviour
         {
             if (ros2Node == null)
             {
-                ros2Node = ros2Unity.CreateNode("UnitySubNode");
+                ros2Node = ros2Unity.CreateNode("unity_subscriber");
                 map_sub = ros2Node.CreateSubscription<Og>("/behavior/map", mappingCallback);
                 currentpose_sub = ros2Node.CreateSubscription<Ps>("/localization/current_pose", currentposeCallback);
                 goalpose_sub = ros2Node.CreateSubscription<Ps>("/behavior/goal_pose", goalposeCallback);
@@ -182,12 +179,6 @@ public class UnitySubscriber : MonoBehaviour
             goalRectTransform.anchorMax = new Vector2(1, 1);
             robotRectTransform.anchorMin = new Vector2(1, 1);
             robotRectTransform.anchorMax = new Vector2(1, 1);
-            lookaheadRectTransform.anchoredPosition = new Vector3(lposX, lposY, 0f);
-            lookahead.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, loriZ, loriW);
-            goalRectTransform.anchoredPosition = new Vector3(gposX, gposY, 0f);
-            goal.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, goriZ, goriW);
-            robotRectTransform.anchoredPosition = new Vector3(posX, posY, 0f);
-            robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, oriZ, oriW);
         }
         else
         {
@@ -197,13 +188,14 @@ public class UnitySubscriber : MonoBehaviour
             goalRectTransform.anchorMax = new Vector2(1, 0);
             robotRectTransform.anchorMin = new Vector2(1, 0);
             robotRectTransform.anchorMax = new Vector2(1, 0);
-            lookaheadRectTransform.anchoredPosition = new Vector3(lposX, lposY, 0f);
-            lookahead.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, loriZ, loriW);
-            goalRectTransform.anchoredPosition = new Vector3(gposX, gposY, 0f);
-            goal.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, goriZ, goriW);
-            robotRectTransform.anchoredPosition = new Vector3(posX, posY, 0f);
-            robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, oriZ, oriW);
         }
+
+        lookaheadRectTransform.anchoredPosition = new Vector3(lposX, lposY, 0f);
+        lookahead.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, loriZ, loriW);
+        goalRectTransform.anchoredPosition = new Vector3(gposX, gposY, 0f);
+        goal.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, goriZ, goriW);
+        robotRectTransform.anchoredPosition = new Vector3(posX, posY, 0f);
+        robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, oriZ, oriW);
 
         //Visualize Swerve Pose
         if (swerveText0 != null) swerveText0.SetText($"WheelAngle0: {wheelAngle[0]}°\nWheelSpeed0: {wheelSpeed[0]}rpm");
@@ -263,6 +255,17 @@ public class UnitySubscriber : MonoBehaviour
 
                 float px = -(float)subscribedPath.Poses[num].Pose.Position.X*m2pixY;
                 float py = -(float)subscribedPath.Poses[num].Pose.Position.Y*m2pixX;
+
+                if (isRed)
+                {
+                    pointRectTransforms[i].anchorMin = new Vector2(1, 0);
+                    pointRectTransforms[i].anchorMax = new Vector2(1, 0);
+                }
+                else
+                {
+                    pointRectTransforms[i].anchorMin = new Vector2(1, 1);
+                    pointRectTransforms[i].anchorMax = new Vector2(1, 1);
+                }
 
                 pointRectTransforms[i] = (RectTransform)points[i].transform;
                 pointRectTransforms[i].anchoredPosition = new Vector3(px, py, 0);
@@ -379,17 +382,18 @@ public class UnitySubscriber : MonoBehaviour
             if (-1.0f <= msg.Wheel_speed[i] && msg.Wheel_speed[i] <= 1.0f)
             {
                 wheelSpeed[i] = 0f;
+                wheelAngle[i] = (float)msg.Wheel_angle[i] * Mathf.Rad2Deg;
             }
             else if (msg.Wheel_speed[i] < -1.0f)
             {
                 wheelSpeed[i] = Mathf.Abs(msg.Wheel_speed[i]);
-                msg.Wheel_angle[i] -= Mathf.PI;
+                wheelAngle[i] = ((float)msg.Wheel_angle[i] + Mathf.PI) * Mathf.Rad2Deg;
             }
             else 
             {
                 wheelSpeed[i] = (float)msg.Wheel_speed[i];
+                wheelAngle[i] = (float)msg.Wheel_angle[i] * Mathf.Rad2Deg;
             }
-            wheelAngle[i] = (float)msg.Wheel_angle[i] * Mathf.Rad2Deg;
         }
     }
 

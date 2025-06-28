@@ -7,107 +7,63 @@ using UnityEngine.UI;
 
 public class PanelContoroller : MonoBehaviour
 {
-    [SerializeField] GameObject conPanel;
-    [SerializeField] GameObject mainPanel;
-    [SerializeField] GameObject infoPanel;
+    [SerializeField] GameObject manualPanel; // conPanel → manualPanel
+    [SerializeField] GameObject autoPanel;   // mainPanel → autoPanel
     //[SerializeField] Button toMain;
-    [SerializeField] private SpriteSwitcher conSwitcher;
-    [SerializeField] private Button conSwitcherButton;
-    private bool conSwitcherState = false;
-    [SerializeField] private SpriteSwitcher infoSwitcher;
-    [SerializeField] private Button infoSwitcherButton;
-    private bool infoSwitcherState = false;
-    private bool is_mainpanel = true;
-    private bool is_conpanel = false;
-    private bool is_infopanel = false;
+    [SerializeField] private SpriteSwitcher manualSwitcher; // conSwitcher → manualSwitcher
+    [SerializeField] private Button manualSwitcherButton;   // conSwitcherButton → manualSwitcherButton
+    private bool manualSwitcherState = false;
+    private bool is_autoPanel = true;
+    private bool is_manualPanel = false;
     public GameObject JoyCpn;
-    private string previousPanel = "Main";
- 
+    private string previousPanel = "Auto";
+
     void Start () {
-        conSwitcherButton.onClick.AddListener(conSwitcherOn);
-        infoSwitcherButton.onClick.AddListener(infoSwitcherOn);
-        mainOn();
+        manualSwitcherButton.onClick.AddListener(manualSwitcherOn);
+        autoOn();
     }
 
     void Update()
     {
     }
 
-    void mainOn(){
-        is_mainpanel = true;
-        is_conpanel = false;
-        is_infopanel = false;
-        mainPanel.SetActive(true);
-        conPanel.SetActive(false);
-        infoPanel.SetActive(false);
+    void autoOn(){
+        is_autoPanel = true;
+        is_manualPanel = false;
+        autoPanel.SetActive(true);
+        manualPanel.SetActive(false);
         JoyCpn.GetComponent<UnityPublisher>().ResetJoystickInput();
     }
 
-    void conOn(){
-        is_mainpanel = false;
-        is_conpanel = true;
-        is_infopanel = false;
-        mainPanel.SetActive(false);
-        conPanel.SetActive(true);
-        infoPanel.SetActive(false);
+    void manualOn(){
+        is_autoPanel = false;
+        is_manualPanel = true;
+        autoPanel.SetActive(false);
+        manualPanel.SetActive(true);
     }
 
-    void infoOn(){
-        is_mainpanel = false;
-        is_conpanel = false;
-        is_infopanel = true;
-        mainPanel.SetActive(false);
-        conPanel.SetActive(false);
-        infoPanel.SetActive(true);
-        JoyCpn.GetComponent<UnityPublisher>().ResetJoystickInput();
-    }
-
-    void conSwitcherOn(){
-        conSwitcherState = !conSwitcherState;
-        if (conSwitcherState)
+    void manualSwitcherOn(){
+        manualSwitcherState = !manualSwitcherState;
+        if (manualSwitcherState)
         {
             previousPanel = GetCurrentPanel();
-            conOn();
+            manualOn();
         }
         else
         {
-            mainOn();
-        }
-    }
-
-    void infoSwitcherOn(){
-        infoSwitcherState = !infoSwitcherState;
-        if (infoSwitcherState)
-        {
-            previousPanel = GetCurrentPanel();
-            infoOn();
-        }
-        else
-        {
-            if (previousPanel == "Main")
-            {
-                mainOn();
-            }
-            else if (previousPanel == "Con")
-            {
-                conOn();
-            }
+            autoOn();
         }
     }
 
     string GetCurrentPanel()
     {
-        if (is_mainpanel)
+        if (is_autoPanel)
         {
-            return "Main";
+            return "Auto";
         }
-        else if (is_conpanel)
+        else if (is_manualPanel)
         {
-            return "Con";
-        }
-        else if (is_infopanel)
-        {
-            return "Info";
+            return "Manual";
         }
         else
         {
@@ -115,20 +71,16 @@ public class PanelContoroller : MonoBehaviour
         }
     }
 
-    private string GetPreviousPanel()
+    private string getPreviousPanel()
     {
         return previousPanel;
     }
 
-    public bool Getismain(){
-        return is_mainpanel;
+    public bool getIsAuto(){
+        return is_autoPanel;
     }
 
-    public bool Getiscon(){
-        return is_conpanel;
-    }
-
-    public bool Getisinfo(){
-        return is_infopanel;
+    public bool getIsManual(){
+        return is_manualPanel;
     }
 }

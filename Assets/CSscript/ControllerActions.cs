@@ -17,7 +17,7 @@ public class ControllerActions : MonoBehaviour
     [SerializeField] List<NewDs4button> ds4data;
     private GameInputs _gameInputs;
     private PanelList nowpanel;
-    private bool is_main;
+    private bool is_auto;
     private Vector2 _leftdsjoy;
     private Vector2 _rightdsjoy;
     private float _r2float;
@@ -68,11 +68,11 @@ public class ControllerActions : MonoBehaviour
         _rightdsjoy = context.ReadValue<Vector2>();
     }
     void Update(){
-        is_main = uiope.GetComponent<PanelContoroller>().Getismain();
-        if(is_main){
-            nowpanel = PanelList.main;
+        is_auto = uiope.GetComponent<PanelContoroller>().getIsAuto();
+        if(is_auto){
+            nowpanel = PanelList.auto;
         }else{
-            nowpanel = PanelList.con;
+            nowpanel = PanelList.manual;
         }
         if(connect){
             Leftjoy.Setpos(_leftdsjoy);
@@ -150,5 +150,5 @@ public enum ButtonList
 }
 public enum PanelList
 {
-    con,main,CMD,Null
+    con,main,CMD,Null,auto,manual
 }

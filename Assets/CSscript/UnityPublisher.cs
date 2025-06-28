@@ -22,13 +22,12 @@ public class UnityPublisher : MonoBehaviour
     //private int target_num = 0;
     [System.NonSerialized] public Queue<string> queue = new Queue<string>();
     [System.NonSerialized] public Queue<int> intQueue = new Queue<int>();
-    [System.NonSerialized] public Queue<bool> boolQueue = new Queue<bool>();
     [System.NonSerialized] public Queue<twist> twistmsgs = new Queue<twist>();
     //private IEnumerator routine;
     //[SerializeField] private string twistringTopicName = "/Twistring_topic_name";
     [SerializeField] private string twiststampedTopicName = "/TwistStamped_topic_name";
     [SerializeField] private float pub_hz = 0.05f;
-    private bool is_main;
+    private bool is_auto;
 
     public FixedJoystick XYJoy;
     public FixedJoystick ZJoy;
@@ -37,43 +36,47 @@ public class UnityPublisher : MonoBehaviour
     private IPublisher<TS> joy_pub;
     private IEnumerator joy_routine;
 
-    //publish status
+    //Publish Status
     private IEnumerator statusRoutine;
     private IPublisher<Int32> status_pub;
 
-    //publish automate ready
+    //Publish Command
     [SerializeField] Button automateReadyButton;
+    [SerializeField] Button signalButton;
     private bool isAutomateReady = true;
-    private IEnumerator automateReadyRoutine;
-    private IPublisher<Co> automateReady_pub;
+    private bool isSignalOn = true;
+    private IEnumerator commandRoutine;
+    private IPublisher<Co> command_pub; 
+
+    private Co pendingCommand = null;
 
     void Start()
     {
         TryGetComponent(out ros2Unity);
-        //routine = PublishTwistring();
         joy_routine = JoyAsync();
         statusRoutine = publishStatus();
-        automateReadyRoutine = publishAutomateReady();
+        commandRoutine = publishCommandReady();
         automateReadyButton.onClick.AddListener(() => automateReadyButtonClicked());
+        signalButton.onClick.AddListener(() => signalButtonClicked());
     }
 
     void Update()
     {
         leftdsjoy = controllerActions.GetComponent<ControllerActions>().Getleftjoy();
         rightdsjoy = controllerActions.GetComponent<ControllerActions>().Getrightjoy();
-        is_main = uiope.GetComponent<PanelContoroller>().Getismain();
-        if(is_main) ResetJoystickInput();
+        is_auto = uiope.GetComponent<PanelContoroller>().getIsAuto();
+        if(is_auto) ResetJoystickInput();
         if(ros2Unity.Ok()){
             if(ros2Node == null){
-                ros2Node = ros2Unity.CreateNode("UnityPubNode");
+                ros2Node = ros2Unity.CreateNode("unity_publisher");
                 //pub = ros2Node.CreatePublisher<Ts>(twistringTopicName);
                 joy_pub = ros2Node.CreatePublisher<TS>(twiststampedTopicName);
                 status_pub = ros2Node.CreatePublisher<Int32>("/behavior/set_status_num");
-                automateReady_pub = ros2Node.CreatePublisher<Co>("/command");
+                command_pub = ros2Node.CreatePublisher<Co>("/command");
                 //StartCoroutine(routine);
                 StartCoroutine(joy_routine);
                 StartCoroutine(statusRoutine);
-                StartCoroutine(automateReadyRoutine);
+                StartCoroutine(commandRoutine);
             }
         }
     }
@@ -86,7 +89,7 @@ public class UnityPublisher : MonoBehaviour
             if(queue.Count!=0)msg.Cmd = queue.Dequeue();
             while(twistmsgs.Count!=0)msg.Twist = twistmsgs.Dequeue();
             msg.Id = Convert.ToSByte(target_num);
-            if(msg.Cmd!="" && is_main || !is_main){
+            if(msg.Cmd!="" && is_auto || !is_auto){
                 pub.Publish(msg);
             }
             yield return new WaitForSeconds(pub_hz);
@@ -97,7 +100,7 @@ public class UnityPublisher : MonoBehaviour
     {
         while (true)
         {
-            if (!is_main)
+            if (!is_auto)
             {
                 ROS2Clock clock = new ROS2Clock();
                 TS sendtwist = new TS
@@ -124,7 +127,7 @@ public class UnityPublisher : MonoBehaviour
             {
                 Int32 status_msg = new Int32();
                 status_msg.Data = intQueue.Dequeue();
-                if (is_main)
+                if (is_auto)
                 {
                     status_pub.Publish(status_msg);
                 }
@@ -133,30 +136,41 @@ public class UnityPublisher : MonoBehaviour
         }
     }
 
-    IEnumerator publishAutomateReady()
-    {
-        while (true)
-        {
-            if (boolQueue.Count != 0)
-            {
-                ROS2Clock clock = new ROS2Clock();
-                Co sendCommand = new Co
-                {
-                    Header = new std_msgs.msg.Header()
-                };
-                clock.UpdateROSClockTime(sendCommand.Header.Stamp);
-                sendCommand.Header.Frame_id = "base_link";
-                sendCommand.Automate_ready = boolQueue.Dequeue();
-                automateReady_pub.Publish(sendCommand);
-            }
-            yield return new WaitForSeconds(pub_hz);
-        }
-    }
-
     private void automateReadyButtonClicked()
     {
         isAutomateReady = !isAutomateReady;
-        boolQueue.Enqueue(isAutomateReady);
+        SetPendingCommand();
+    }
+
+    private void signalButtonClicked()
+    {
+        isSignalOn = !isSignalOn;
+        SetPendingCommand();
+    }
+    private void SetPendingCommand()
+    {
+        ROS2Clock clock = new ROS2Clock();
+        pendingCommand = new Co
+        {
+            Header = new std_msgs.msg.Header()
+        };
+        clock.UpdateROSClockTime(pendingCommand.Header.Stamp);
+        pendingCommand.Header.Frame_id = "base_link";
+        pendingCommand.Automate_ready = isAutomateReady;
+        pendingCommand.Signal = isSignalOn;
+    }
+
+    IEnumerator publishCommandReady()
+    {
+        while (true)
+        {
+            if (pendingCommand != null)
+            {
+                command_pub.Publish(pendingCommand);
+                pendingCommand = null;
+            }
+            yield return new WaitForSeconds(pub_hz);
+        }
     }
 
     public void ResetJoystickInput()

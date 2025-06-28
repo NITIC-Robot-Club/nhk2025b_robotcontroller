@@ -1494,7 +1494,7 @@ GameObject:
   - component: {fileID: 748259396}
   - component: {fileID: 748259395}
   - component: {fileID: 748259394}
-  - component: {fileID: 748259397}
+  - component: {fileID: 748259398}
   m_Layer: 5
   m_Name: Info Button
   m_TagString: Untagged
@@ -1604,7 +1604,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 748259392}
   m_CullTransparentMesh: 1
---- !u!114 &748259397
+--- !u!114 &748259398
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1613,13 +1613,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 748259392}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3dc8f0670a45750d8bf6e6f71d901f71, type: 3}
+  m_Script: {fileID: 11500000, guid: 4a3054864f9a685b39b8f2267a120be1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetButton: {fileID: 748259394}
+  targetPanel: {fileID: 1992477556}
+  _hold: {fileID: -8841098119417762204, guid: f8dd54c495c11d8478a4519c36281835, type: 3}
+  uiope: {fileID: 1964926389}
   sprite1: {fileID: 21300000, guid: 5c27fc79dd2011c4ab50f507f7cfb7af, type: 3}
   sprite2: {fileID: 21300000, guid: 2251011a5d10c124ea35f86c11f5d53b, type: 3}
   buttonImage: {fileID: 748259395}
-  button: {fileID: 748259394}
 --- !u!224 &760142548 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2929252283123773938, guid: aaa2c939c0359ac4dbce3f49e8b90252, type: 3}
@@ -2345,7 +2348,7 @@ GameObject:
   - component: {fileID: 939515519}
   - component: {fileID: 939515518}
   m_Layer: 5
-  m_Name: Main Panel
+  m_Name: Auto Panel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2498,7 +2501,7 @@ GameObject:
   - component: {fileID: 996309104}
   - component: {fileID: 996309106}
   m_Layer: 5
-  m_Name: Control Panel
+  m_Name: Manual Panel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2733,7 +2736,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 838226690}
   m_HandleRect: {fileID: 838226689}
   m_Direction: 2
-  m_Value: -0.00000069804327
+  m_Value: -0.00000034902163
   m_Size: 0.7329643
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -3304,7 +3307,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 349.7502}
+  m_AnchoredPosition: {x: 0, y: 349.7501}
   m_SizeDelta: {x: 0, y: 1309.75}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &1190504189
@@ -4254,6 +4257,7 @@ MonoBehaviour:
   XYJoy: {fileID: 1327206532}
   ZJoy: {fileID: 1715224645}
   automateReadyButton: {fileID: 1167131743}
+  signalButton: {fileID: 1549242423}
 --- !u!114 &1806372287
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4270,34 +4274,34 @@ MonoBehaviour:
   ds4data:
   - ds4button: 17
     button: {fileID: 461902303}
-    panel: 1
+    panel: 4
   - ds4button: 19
     button: {fileID: 1549242423}
-    panel: 1
+    panel: 4
   - ds4button: 20
     button: {fileID: 1167131743}
-    panel: 1
+    panel: 4
   - ds4button: 20
     button: {fileID: 1167131743}
-    panel: 0
+    panel: 5
   - ds4button: 21
     button: {fileID: 748259394}
-    panel: 1
+    panel: 4
   - ds4button: 21
     button: {fileID: 748259394}
-    panel: 0
+    panel: 5
   - ds4button: 18
     button: {fileID: 690118299}
-    panel: 0
+    panel: 5
   - ds4button: 18
     button: {fileID: 690118299}
-    panel: 1
+    panel: 4
   - ds4button: 17
     button: {fileID: 461902303}
-    panel: 0
+    panel: 5
   - ds4button: 19
     button: {fileID: 1549242423}
-    panel: 0
+    panel: 5
   Rightjoy: {fileID: 1715224645}
   Leftjoy: {fileID: 1327206532}
 --- !u!1 &1823439554
@@ -4764,13 +4768,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54978a162efabb54ab48cd4f4eb7d95a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  conPanel: {fileID: 996309102}
-  mainPanel: {fileID: 939515516}
-  infoPanel: {fileID: 1992477556}
-  conSwitcher: {fileID: 1167131746}
-  conSwitcherButton: {fileID: 1167131743}
-  infoSwitcher: {fileID: 748259397}
-  infoSwitcherButton: {fileID: 748259394}
+  manualPanel: {fileID: 996309102}
+  autoPanel: {fileID: 939515516}
+  manualSwitcher: {fileID: 1167131746}
+  manualSwitcherButton: {fileID: 1167131743}
   JoyCpn: {fileID: 1806372275}
 --- !u!4 &1964926391
 Transform:
