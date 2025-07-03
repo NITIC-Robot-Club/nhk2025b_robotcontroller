@@ -33,18 +33,18 @@ public class UnitySubscriber : MonoBehaviour
 
     //Visualize OccupancyGrid
     public RawImage rawImage;
-    private int ogWidth;
-    private int ogHeight;
+    private int ogWidth = 1920;
+    private int ogHeight = 960;
     private sbyte[] ogData;
     private Texture2D ogTexture;
     private bool ogDirty = false;
-    private const int ogWidthDefault = 1750;        // px
+    private const int ogWidthDefault = 1920;        // px
     private const int ogHeightDefault = 960;        // px
     private bool ogIsRed = false;
     private bool isRed = false;
 
     //Pose Variables
-    const float m2pixX = 1750.00f / 10.0f;          // px/m
+    const float m2pixX = 1920.00f / 10.0f;          // px/m
     const float m2pixY = 960.00f / 5.0f;            // px/m
 
     //Current Pose Subscriber
@@ -99,7 +99,8 @@ public class UnitySubscriber : MonoBehaviour
     //Visualize Robot State
     [SerializeField] private TMP_Text currentStateText;
     private string currentState = "Current State";
-    [SerializeField] GameObject buttonPrefab;
+    [SerializeField] GameObject buttonPrefabYellow;
+    [SerializeField] GameObject buttonPrefabBlue;
     [SerializeField] GameObject buttonParent;
     private int stateSize;
     private int[] stateID = new int[50];
@@ -142,6 +143,7 @@ public class UnitySubscriber : MonoBehaviour
             points[i].transform.SetParent(pathParent.transform);
             points[i].transform.localScale = Vector3.one;
             pointRectTransforms[i] = (RectTransform)points[i].transform;
+            pointRectTransforms[i].transform.rotation = Quaternion.Euler(0f, 0f, 90f);
             pointRectTransforms[i].anchorMin = new Vector2(1, 1);
             pointRectTransforms[i].anchorMax = new Vector2(1, 1);
         }
@@ -265,6 +267,7 @@ public class UnitySubscriber : MonoBehaviour
                 }
 
                 pointRectTransforms[i] = (RectTransform)points[i].transform;
+                pointRectTransforms[i].transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, (float)subscribedPath.Poses[num].Pose.Orientation.Z, (float)subscribedPath.Poses[num].Pose.Orientation.W);
                 pointRectTransforms[i].anchoredPosition = new Vector3(px, py, 0);
             }
         }
@@ -279,7 +282,15 @@ public class UnitySubscriber : MonoBehaviour
             }
             for (int i = 0; i < stateSize; i++)
             {
-                GameObject button = Instantiate(buttonPrefab);
+                GameObject button;
+                if (currentState == stateName[i])
+                {
+                    button = Instantiate(buttonPrefabBlue);
+                }
+                else
+                {
+                    button = Instantiate(buttonPrefabYellow);
+                }
                 button.transform.SetParent(buttonParent.transform, false);
                 button.transform.localScale = Vector3.one;
                 button.GetComponent<RectTransform>().anchoredPosition = initialPosition + new Vector2(0, -i * 125);
