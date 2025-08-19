@@ -7,7 +7,6 @@ using UnityEngine.UI;
 using ROS2;
 using topicSt = std_msgs.msg.String;
 using twist = geometry_msgs.msg.Twist;
-//using Ts = twistring.msg.Twistring;
 using TS = geometry_msgs.msg.TwistStamped;
 using Int32 = std_msgs.msg.Int32;
 using Co = nhk2025b_msgs.msg.Command;
@@ -18,13 +17,9 @@ public class UnityPublisher : MonoBehaviour
     [SerializeField] private GameObject uiope;
     private ROS2UnityComponent ros2Unity;
     private ROS2Node ros2Node;
-    //private IPublisher<Ts> pub;
-    //private int target_num = 0;
     [System.NonSerialized] public Queue<string> queue = new Queue<string>();
     [System.NonSerialized] public Queue<int> intQueue = new Queue<int>();
     [System.NonSerialized] public Queue<twist> twistmsgs = new Queue<twist>();
-    //private IEnumerator routine;
-    //[SerializeField] private string twistringTopicName = "/Twistring_topic_name";
     [SerializeField] private string twiststampedTopicName = "/TwistStamped_topic_name";
     [SerializeField] private float pub_hz = 0.05f;
     private bool is_auto;
@@ -42,7 +37,8 @@ public class UnityPublisher : MonoBehaviour
 
     //Publish Command
     [SerializeField] Button automateReadyButton;
-    [SerializeField] Button signalButton;
+    [SerializeField] Button pauseButton;
+    [SerializeField] Button continueButton;
     private bool isAutomateReady = true;
     private bool isSignalOn = true;
     private IEnumerator commandRoutine;
@@ -57,7 +53,8 @@ public class UnityPublisher : MonoBehaviour
         statusRoutine = publishStatus();
         commandRoutine = publishCommandReady();
         automateReadyButton.onClick.AddListener(() => automateReadyButtonClicked());
-        signalButton.onClick.AddListener(() => signalButtonClicked());
+        pauseButton.onClick.AddListener( () => pauseButtonClicked());
+        continueButton.onClick.AddListener( () => continueButtonClicked());
     }
 
     void Update()
@@ -69,32 +66,15 @@ public class UnityPublisher : MonoBehaviour
         if(ros2Unity.Ok()){
             if(ros2Node == null){
                 ros2Node = ros2Unity.CreateNode("unity_publisher");
-                //pub = ros2Node.CreatePublisher<Ts>(twistringTopicName);
                 joy_pub = ros2Node.CreatePublisher<TS>(twiststampedTopicName);
                 status_pub = ros2Node.CreatePublisher<Int32>("/behavior/set_status_num");
                 command_pub = ros2Node.CreatePublisher<Co>("/command");
-                //StartCoroutine(routine);
                 StartCoroutine(joy_routine);
                 StartCoroutine(statusRoutine);
                 StartCoroutine(commandRoutine);
             }
         }
     }
-
-    /*IEnumerator PublishTwistring()
-    {
-        while(true)
-        {
-            Ts msg = new Ts();
-            if(queue.Count!=0)msg.Cmd = queue.Dequeue();
-            while(twistmsgs.Count!=0)msg.Twist = twistmsgs.Dequeue();
-            msg.Id = Convert.ToSByte(target_num);
-            if(msg.Cmd!="" && is_auto || !is_auto){
-                pub.Publish(msg);
-            }
-            yield return new WaitForSeconds(pub_hz);
-        }
-    }*/
 
     IEnumerator JoyAsync()
     {
@@ -142,11 +122,18 @@ public class UnityPublisher : MonoBehaviour
         SetPendingCommand();
     }
 
-    private void signalButtonClicked()
+    private void pauseButtonClicked()
     {
-        isSignalOn = !isSignalOn;
+        isSignalOn = false;
         SetPendingCommand();
     }
+
+    private void continueButtonClicked()
+    {
+        isSignalOn = true;
+        SetPendingCommand();
+    }
+
     private void SetPendingCommand()
     {
         ROS2Clock clock = new ROS2Clock();
@@ -156,7 +143,7 @@ public class UnityPublisher : MonoBehaviour
         };
         clock.UpdateROSClockTime(pendingCommand.Header.Stamp);
         pendingCommand.Header.Frame_id = "base_link";
-        pendingCommand.Automate_ready = isAutomateReady;
+        pendingCommand.Allow_automate = isAutomateReady;
         pendingCommand.Signal = isSignalOn;
     }
 

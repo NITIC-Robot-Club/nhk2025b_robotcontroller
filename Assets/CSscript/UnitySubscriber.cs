@@ -160,7 +160,7 @@ public class UnitySubscriber : MonoBehaviour
                 currentpose_sub = ros2Node.CreateSubscription<Ps>("/localization/current_pose", currentposeCallback);
                 goalpose_sub = ros2Node.CreateSubscription<Ps>("/behavior/goal_pose", goalposeCallback);
                 path_sub = ros2Node.CreateSubscription<Pa>("/planning/path", pathCallback);
-                lookaheadpose_sub = ros2Node.CreateSubscription<Ps>("/control/lookahead_pose", lookaheadposeCallback);
+                lookaheadpose_sub = ros2Node.CreateSubscription<Ps>("/control/lookahead_position", lookaheadposeCallback);
                 result_sub = ros2Node.CreateSubscription<Sw>("/swerve/result", resultCallback);
                 cmd_sub = ros2Node.CreateSubscription<Sw>("/visualization/swerve", cmdCallback);
                 state_sub = ros2Node.CreateSubscription<Sa>("/behavior/avaiable_state_array", stateCallback);
