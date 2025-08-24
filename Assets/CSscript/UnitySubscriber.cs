@@ -109,7 +109,7 @@ public class UnitySubscriber : MonoBehaviour
     private string[] prevStateName = new string[50];
     private int prevStateSize = 0;
     private bool stateChanged = false;
-    private Vector2 initialPosition = new Vector2(0, 500);
+    private Vector2 initialPosition = new Vector2(0, 725);
 
     void Start()
     {

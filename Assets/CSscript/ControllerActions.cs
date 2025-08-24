@@ -24,7 +24,8 @@ public class ControllerActions : MonoBehaviour
     private bool connect;
     public FixedJoystick Rightjoy;
     public FixedJoystick Leftjoy;
-    private void Awake(){
+    private void Awake()
+    {
         StartCoroutine(connectcheck());
         _gameInputs = new GameInputs();
 
@@ -61,28 +62,49 @@ public class ControllerActions : MonoBehaviour
 
         _gameInputs.Player.Enable();
     }
-    private void OnMove(InputAction.CallbackContext context){
+    private void OnMove(InputAction.CallbackContext context)
+    {
         _leftdsjoy = context.ReadValue<Vector2>();
     }
-    private void OnDir(InputAction.CallbackContext context){
+    private void OnDir(InputAction.CallbackContext context)
+    {
         _rightdsjoy = context.ReadValue<Vector2>();
     }
-    void Update(){
+    void Update()
+    {
         is_auto = uiope.GetComponent<PanelContoroller>().getIsAuto();
-        if(is_auto){
+        if(is_auto)
+        {
             nowpanel = PanelList.auto;
-        }else{
-            nowpanel = PanelList.manual;
         }
-        if(connect){
+        else if(uiope.GetComponent<PanelContoroller>().getIsChassis())
+        {
+            nowpanel = PanelList.chassis;
+        }
+        else if(uiope.GetComponent<PanelContoroller>().getIsConveyor())
+        {
+            nowpanel = PanelList.conveyor;
+        }
+        else if(uiope.GetComponent<PanelContoroller>().getIsBoxArm())
+        {
+            nowpanel = PanelList.box_arm;
+        }
+        else if(uiope.GetComponent<PanelContoroller>().getIsPylonArm())
+        {
+            nowpanel = PanelList.pylon_arm;
+        }
+        if(connect)
+        {
             Leftjoy.Setpos(_leftdsjoy);
             Rightjoy.Setpos(_rightdsjoy);
         }
     }
 
-    private void OnDestroy(){
+    private void OnDestroy()
+    {
         _gameInputs?.Dispose();
     }
+
     private void OnMaru(InputAction.CallbackContext context){Osu(ButtonList.Maru);}
     private void OnBatu(InputAction.CallbackContext context){Osu(ButtonList.Batu);}
     private void OnSikaku(InputAction.CallbackContext context){Osu(ButtonList.Sikaku);}
@@ -115,28 +137,37 @@ public class ControllerActions : MonoBehaviour
             }
         }
     }
-    public Vector2 Getleftjoy(){
+    public Vector2 Getleftjoy()
+    {
         return _leftdsjoy;
     }
-    public Vector2 Getrightjoy(){
+    public Vector2 Getrightjoy()
+    {
         return _rightdsjoy;
     }
-    public float Getr2float(){
+    public float Getr2float()
+    {
         return _r2float;
     }
-    IEnumerator connectcheck(){
+    IEnumerator connectcheck()
+    {
         bool okuru = false;
-        while(true){    
+        while(true)
+        {    
             yield return new WaitForFixedUpdate();
             var game = Gamepad.all;
-            if(game.Count==0){
+            if(game.Count==0)
+            {
                 okuru = false;
                 connect =false;
                 _leftdsjoy = new Vector2(0,0);
                 _rightdsjoy = new Vector2(0,0);
-            }else{
+            }
+            else
+            {
                 connect = true;
-                if(!okuru){
+                if(!okuru)
+                {
                     Debug.Log("connected!");
                     okuru=true;
                 }
@@ -149,6 +180,6 @@ public enum ButtonList
     Sikaku,Batu,Maru,Sankaku,L1,L2,R1,R2,Lo,Ro,Up,Down,Right,Left,Share,Options,TouchPad,X,Y,A,B,Start,Select
 }
 public enum PanelList
-{
-    con,main,CMD,Null,auto,manual
+{   
+    con,main,CMD,Null,auto,chassis,conveyor,box_arm,pylon_arm
 }

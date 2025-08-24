@@ -10,6 +10,9 @@ using twist = geometry_msgs.msg.Twist;
 using TS = geometry_msgs.msg.TwistStamped;
 using Int32 = std_msgs.msg.Int32;
 using Co = nhk2025b_msgs.msg.Command;
+using Ba = nhk2025b_msgs.msg.BoxArm;
+using Cn = nhk2025b_msgs.msg.Conveyor;
+using Pl = nhk2025b_msgs.msg.PylonArm;
 using TMPro;
 public class UnityPublisher : MonoBehaviour
 {
@@ -46,12 +49,43 @@ public class UnityPublisher : MonoBehaviour
 
     private Co pendingCommand = null;
 
+    //Publish BoxArm
+    private IEnumerator boxArmRoutine;
+    private IPublisher<Ba> boxArm_pub;
+    [SerializeField] private Slider boxArmHeightSlider1;
+    [SerializeField] private Slider boxArmHeightSlider2;
+    [SerializeField] private Slider boxArmStrongSlider1;
+    [SerializeField] private Slider boxArmStrongSlider2;
+    [SerializeField] private Slider boxArmWeakSlider1;
+    [SerializeField] private Slider boxArmWeakSlider2;
+    [SerializeField] private Toggle boxArmExpandToggle1;
+    [SerializeField] private Toggle boxArmExpandToggle2;
+
+    //Publish Conveyor
+    private IEnumerator conveyorRoutine;
+    private IPublisher<Cn> conveyor_pub;
+    [SerializeField] private Slider boxConveyorRpmSlider1;
+    [SerializeField] private Slider boxConveyorRpmSlider2;
+
+    //Publish PylonArm
+    private IEnumerator pylonArmRoutine;
+    private IPublisher<Pl> pylonArm_pub;
+    [SerializeField] private Slider pylonArmHeightSlider1;
+    [SerializeField] private Slider pylonArmHeightSlider2;
+    [SerializeField] private Slider pylonArmCollectRpmSlider1;
+    [SerializeField] private Slider pylonArmCollectRpmSlider2;
+    [SerializeField] private Toggle pylonArmExpandToggle1;
+    [SerializeField] private Toggle pylonArmExpandToggle2;
+
     void Start()
     {
         TryGetComponent(out ros2Unity);
         joy_routine = JoyAsync();
         statusRoutine = publishStatus();
         commandRoutine = publishCommandReady();
+        boxArmRoutine = publishBoxArm();
+        conveyorRoutine = publishConveyor();
+        pylonArmRoutine = publishPylonArm();
         automateReadyButton.onClick.AddListener(() => automateReadyButtonClicked());
         pauseButton.onClick.AddListener( () => pauseButtonClicked());
         continueButton.onClick.AddListener( () => continueButtonClicked());
@@ -69,9 +103,15 @@ public class UnityPublisher : MonoBehaviour
                 joy_pub = ros2Node.CreatePublisher<TS>(twiststampedTopicName);
                 status_pub = ros2Node.CreatePublisher<Int32>("/behavior/set_status_num");
                 command_pub = ros2Node.CreatePublisher<Co>("/command");
+                boxArm_pub = ros2Node.CreatePublisher<Ba>("/box_arm/cmd");
+                conveyor_pub = ros2Node.CreatePublisher<Cn>("/conveyor/cmd");
+                pylonArm_pub = ros2Node.CreatePublisher<Pl>("/pylon_arm/cmd");
                 StartCoroutine(joy_routine);
                 StartCoroutine(statusRoutine);
                 StartCoroutine(commandRoutine);
+                StartCoroutine(boxArmRoutine);
+                StartCoroutine(conveyorRoutine);
+                StartCoroutine(pylonArmRoutine);
             }
         }
     }
@@ -166,5 +206,51 @@ public class UnityPublisher : MonoBehaviour
         ZJoy.transform.Find("Handle").GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
         XYJoy.Setpos(Vector2.zero);
         ZJoy.Setpos(Vector2.zero);
+    }
+
+    IEnumerator publishBoxArm()
+    {
+        while (true)
+        {
+            Ba boxArm_msg = new Ba();
+            boxArm_msg.Height[0] = boxArmHeightSlider1.value;
+            boxArm_msg.Height[1] = boxArmHeightSlider2.value;
+            boxArm_msg.Arm_position_strong[0] = boxArmStrongSlider1.value;
+            boxArm_msg.Arm_position_strong[1] = boxArmStrongSlider2.value;
+            boxArm_msg.Arm_position_weak[0] = boxArmWeakSlider1.value;
+            boxArm_msg.Arm_position_weak[1] = boxArmWeakSlider2.value;
+            boxArm_msg.Expand[0] = boxArmExpandToggle1.GetisAwake();
+            boxArm_msg.Expand[1] = boxArmExpandToggle2.GetisAwake();
+            boxArm_pub.Publish(boxArm_msg);
+            yield return new WaitForSeconds(pub_hz);
+        }
+    }
+
+    IEnumerator publishConveyor()
+    {
+        while (true)
+        {
+            Cn conveyor_msg = new Cn();
+            conveyor_msg.Conveyor_rpm[0] = boxConveyorRpmSlider1.value;
+            conveyor_msg.Conveyor_rpm[1] = boxConveyorRpmSlider2.value;
+            conveyor_pub.Publish(conveyor_msg);
+            yield return new WaitForSeconds(pub_hz);
+        }
+    }
+
+    IEnumerator publishPylonArm()
+    {
+        while (true)
+        {
+            Pl pylonArm_msg = new Pl();
+            pylonArm_msg.Height[0] = pylonArmHeightSlider1.value;
+            pylonArm_msg.Height[1] = pylonArmHeightSlider2.value;
+            pylonArm_msg.Collect_rpm[0] = pylonArmCollectRpmSlider1.value;
+            pylonArm_msg.Collect_rpm[1] = pylonArmCollectRpmSlider2.value;
+            pylonArm_msg.Expand[0] = pylonArmExpandToggle1.GetisAwake();
+            pylonArm_msg.Expand[1] = pylonArmExpandToggle2.GetisAwake();
+            pylonArm_pub.Publish(pylonArm_msg);
+            yield return new WaitForSeconds(pub_hz);
+        }
     }
 }
