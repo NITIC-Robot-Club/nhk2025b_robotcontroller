@@ -155,7 +155,7 @@ public class UnitySubscriber : MonoBehaviour
         {
             if (ros2Node == null)
             {
-                ros2Node = ros2Unity.CreateNode("unity_subscriber");
+                ros2Node = ros2Unity.CreateNode("robotcontroller_subscriber");
                 map_sub = ros2Node.CreateSubscription<Og>("/behavior/map", mappingCallback);
                 currentpose_sub = ros2Node.CreateSubscription<Ps>("/localization/current_pose", currentposeCallback);
                 goalpose_sub = ros2Node.CreateSubscription<Ps>("/behavior/goal_pose", goalposeCallback);

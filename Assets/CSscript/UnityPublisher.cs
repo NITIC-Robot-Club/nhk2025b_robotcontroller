@@ -23,7 +23,6 @@ public class UnityPublisher : MonoBehaviour
     [System.NonSerialized] public Queue<string> queue = new Queue<string>();
     [System.NonSerialized] public Queue<int> intQueue = new Queue<int>();
     [System.NonSerialized] public Queue<twist> twistmsgs = new Queue<twist>();
-    [SerializeField] private string twiststampedTopicName = "/TwistStamped_topic_name";
     [SerializeField] private float pub_hz = 0.05f;
     private bool is_auto;
 
@@ -99,8 +98,8 @@ public class UnityPublisher : MonoBehaviour
         if(is_auto) ResetJoystickInput();
         if(ros2Unity.Ok()){
             if(ros2Node == null){
-                ros2Node = ros2Unity.CreateNode("unity_publisher");
-                joy_pub = ros2Node.CreatePublisher<TS>(twiststampedTopicName);
+                ros2Node = ros2Unity.CreateNode("robotcontroller_publisher");
+                joy_pub = ros2Node.CreatePublisher<TS>("/controller/cmd_vel");
                 status_pub = ros2Node.CreatePublisher<Int32>("/behavior/set_status_num");
                 command_pub = ros2Node.CreatePublisher<Co>("/command");
                 boxArm_pub = ros2Node.CreatePublisher<Ba>("/box_arm/cmd");
@@ -176,13 +175,7 @@ public class UnityPublisher : MonoBehaviour
 
     private void SetPendingCommand()
     {
-        ROS2Clock clock = new ROS2Clock();
-        pendingCommand = new Co
-        {
-            Header = new std_msgs.msg.Header()
-        };
-        clock.UpdateROSClockTime(pendingCommand.Header.Stamp);
-        pendingCommand.Header.Frame_id = "base_link";
+        pendingCommand = new Co();
         pendingCommand.Allow_automate = isAutomateReady;
         pendingCommand.Signal = isSignalOn;
     }
@@ -219,8 +212,14 @@ public class UnityPublisher : MonoBehaviour
             boxArm_msg.Arm_position_strong[1] = boxArmStrongSlider2.value;
             boxArm_msg.Arm_position_weak[0] = boxArmWeakSlider1.value;
             boxArm_msg.Arm_position_weak[1] = boxArmWeakSlider2.value;
-            boxArm_msg.Expand[0] = boxArmExpandToggle1.GetisAwake();
-            boxArm_msg.Expand[1] = boxArmExpandToggle2.GetisAwake();
+            if (boxArmExpandToggle1.GetisAwake())
+            {
+                boxArm_msg.Expand[0] = 1f;
+            }
+            if (boxArmExpandToggle2.GetisAwake())
+            {
+                boxArm_msg.Expand[1] = 1f;
+            }
             boxArm_pub.Publish(boxArm_msg);
             yield return new WaitForSeconds(pub_hz);
         }
@@ -247,8 +246,14 @@ public class UnityPublisher : MonoBehaviour
             pylonArm_msg.Height[1] = pylonArmHeightSlider2.value;
             pylonArm_msg.Collect_rpm[0] = pylonArmCollectRpmSlider1.value;
             pylonArm_msg.Collect_rpm[1] = pylonArmCollectRpmSlider2.value;
-            pylonArm_msg.Expand[0] = pylonArmExpandToggle1.GetisAwake();
-            pylonArm_msg.Expand[1] = pylonArmExpandToggle2.GetisAwake();
+            if(pylonArmExpandToggle1.GetisAwake())
+            {
+                pylonArm_msg.Expand[0] = 1f;
+            }
+            if(pylonArmExpandToggle2.GetisAwake())
+            {
+                pylonArm_msg.Expand[1] = 1f;
+            }
             pylonArm_pub.Publish(pylonArm_msg);
             yield return new WaitForSeconds(pub_hz);
         }
