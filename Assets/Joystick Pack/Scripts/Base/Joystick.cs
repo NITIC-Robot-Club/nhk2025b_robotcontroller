@@ -75,12 +75,6 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         HandleInput(input.magnitude, input.normalized, radius, cam);
         handle.anchoredPosition = input * radius * handleRange;
     }
-    public void Setpos(Vector2 pos){
-        input = pos;
-        Vector2 radius = background.sizeDelta / 2;
-        handle.anchoredPosition = input * radius * handleRange;
-    }
-
 
     protected virtual void HandleInput(float magnitude, Vector2 normalised, Vector2 radius, Camera cam)
     {
@@ -150,6 +144,12 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
             return localPoint - (background.anchorMax * baseRect.sizeDelta) + pivotOffset;
         }
         return Vector2.zero;
+    }
+
+    public void Setpos(Vector2 pos){
+        input = pos;
+        Vector2 radius = background.sizeDelta / 2;
+        handle.anchoredPosition = input * radius * handleRange;
     }
 }
 
