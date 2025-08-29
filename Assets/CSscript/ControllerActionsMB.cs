@@ -5,18 +5,18 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using TMPro;
-[System.Serializable] // <- これが大事。忘れずに
-public class andButton {
-    public andButtonList ds4button;
+[System.Serializable]
+public class AndButton {
+    public AndButtonList andbutton;
     public Button button;
-    public andPanelList panel;
+    public AndPanelList panel;
 }
 public class ControllerActionsMB : MonoBehaviour
 {
     [SerializeField] GameObject uiope;
-    [SerializeField] List<andButton> data;
+    [SerializeField] List<AndButton> AndData;
     private GameInputs _gameInputs;
-    private andPanelList nowpanel;
+    private AndPanelList nowpanel;
     private bool is_auto;
     private void Awake()
     {
@@ -55,23 +55,23 @@ public class ControllerActionsMB : MonoBehaviour
         is_auto = uiope.GetComponent<PanelContoroller>().getIsAuto();
         if(is_auto)
         {
-            nowpanel = andPanelList.auto;
+            nowpanel = AndPanelList.auto;
         }
         else if(uiope.GetComponent<PanelContoroller>().getIsChassis())
         {
-            nowpanel = andPanelList.chassis;
+            nowpanel = AndPanelList.chassis;
         }
         else if(uiope.GetComponent<PanelContoroller>().getIsConveyor())
         {
-            nowpanel = andPanelList.conveyor;
+            nowpanel = AndPanelList.conveyor;
         }
         else if(uiope.GetComponent<PanelContoroller>().getIsBoxArm())
         {
-            nowpanel = andPanelList.box_arm;
+            nowpanel = AndPanelList.box_arm;
         }
         else if(uiope.GetComponent<PanelContoroller>().getIsPylonArm())
         {
-            nowpanel = andPanelList.pylon_arm;
+            nowpanel = AndPanelList.pylon_arm;
         }
     }
 
@@ -80,44 +80,44 @@ public class ControllerActionsMB : MonoBehaviour
         _gameInputs?.Dispose();
     }
 
-    private void OnMaru(InputAction.CallbackContext context){Osu(andButtonList.Maru);}
-    private void OnBatu(InputAction.CallbackContext context){Osu(andButtonList.Batu);}
-    private void OnSikaku(InputAction.CallbackContext context){Osu(andButtonList.Sikaku);}
-    private void OnSankaku(InputAction.CallbackContext context){Osu(andButtonList.Sankaku);}
-    private void OnUp(InputAction.CallbackContext context){Osu(andButtonList.Up);}
-    private void OnDown(InputAction.CallbackContext context){Osu(andButtonList.Down);}
-    private void OnLeft(InputAction.CallbackContext context){Osu(andButtonList.Left);}
-    private void OnRight(InputAction.CallbackContext context){Osu(andButtonList.Right);}
-    private void OnL1(InputAction.CallbackContext context){Osu(andButtonList.L1);}
-    private void OnL2(InputAction.CallbackContext context){Osu(andButtonList.L2);}
-    private void OnR1(InputAction.CallbackContext context){Osu(andButtonList.R1);}
-    private void OnR2(InputAction.CallbackContext context){Osu(andButtonList.R2);}
-    private void OnLo(InputAction.CallbackContext context){Osu(andButtonList.Lo);}
-    private void OnRo(InputAction.CallbackContext context){Osu(andButtonList.Ro);}
-    private void OnShare(InputAction.CallbackContext context){Osu(andButtonList.Share);}
-    private void OnOptions(InputAction.CallbackContext context){Osu(andButtonList.Options);}
-    private void OnTouchPad(InputAction.CallbackContext context){Osu(andButtonList.TouchPad);}
-    private void OnY(InputAction.CallbackContext context){Osu(andButtonList.Y);}
-    private void OnX(InputAction.CallbackContext context){Osu(andButtonList.X);}
-    private void OnA(InputAction.CallbackContext context){Osu(andButtonList.A);}
-    private void OnB(InputAction.CallbackContext context){Osu(andButtonList.B);}
-    private void OnStart(InputAction.CallbackContext context){Osu(andButtonList.Start);}
-    private void OnSelect(InputAction.CallbackContext context){Osu(andButtonList.Select);}
-    private void Osu(andButtonList OsuButton){
-        List<andButton> result = data.FindAll(m => m.ds4button == OsuButton);
+    private void OnMaru(InputAction.CallbackContext context){Osu(AndButtonList.Maru);}
+    private void OnBatu(InputAction.CallbackContext context){Osu(AndButtonList.Batu);}
+    private void OnSikaku(InputAction.CallbackContext context){Osu(AndButtonList.Sikaku);}
+    private void OnSankaku(InputAction.CallbackContext context){Osu(AndButtonList.Sankaku);}
+    private void OnUp(InputAction.CallbackContext context){Osu(AndButtonList.Up);}
+    private void OnDown(InputAction.CallbackContext context){Osu(AndButtonList.Down);}
+    private void OnLeft(InputAction.CallbackContext context){Osu(AndButtonList.Left);}
+    private void OnRight(InputAction.CallbackContext context){Osu(AndButtonList.Right);}
+    private void OnL1(InputAction.CallbackContext context){Osu(AndButtonList.L1);}
+    private void OnL2(InputAction.CallbackContext context){Osu(AndButtonList.L2);}
+    private void OnR1(InputAction.CallbackContext context){Osu(AndButtonList.R1);}
+    private void OnR2(InputAction.CallbackContext context){Osu(AndButtonList.R2);}
+    private void OnLo(InputAction.CallbackContext context){Osu(AndButtonList.Lo);}
+    private void OnRo(InputAction.CallbackContext context){Osu(AndButtonList.Ro);}
+    private void OnShare(InputAction.CallbackContext context){Osu(AndButtonList.Share);}
+    private void OnOptions(InputAction.CallbackContext context){Osu(AndButtonList.Options);}
+    private void OnTouchPad(InputAction.CallbackContext context){Osu(AndButtonList.TouchPad);}
+    private void OnY(InputAction.CallbackContext context){Osu(AndButtonList.Y);}
+    private void OnX(InputAction.CallbackContext context){Osu(AndButtonList.X);}
+    private void OnA(InputAction.CallbackContext context){Osu(AndButtonList.A);}
+    private void OnB(InputAction.CallbackContext context){Osu(AndButtonList.B);}
+    private void OnStart(InputAction.CallbackContext context){Osu(AndButtonList.Start);}
+    private void OnSelect(InputAction.CallbackContext context){Osu(AndButtonList.Select);}
+    private void Osu(AndButtonList OsuButton){
+        List<AndButton> result = AndData.FindAll(m => m.andbutton == OsuButton);
         for(int count = 0;count < result.Count;count++){
-            if(result[count].panel == nowpanel || result[count].panel == andPanelList.CMD){
-                // Debug.Log("Clicked "+result[count].ds4button.ToString());
+            if(result[count].panel == nowpanel || result[count].panel == AndPanelList.CMD){
+                // Debug.Log("Clicked "+result[count].andbutton.ToString());
                 result[count].button.onClick.Invoke();
             }
         }
     }
 }
-public enum andButtonList
+public enum AndButtonList
 {
     Sikaku,Batu,Maru,Sankaku,L1,L2,R1,R2,Lo,Ro,Up,Down,Right,Left,Share,Options,TouchPad,X,Y,A,B,Start,Select
 }
-public enum andPanelList
+public enum AndPanelList
 {   
     con,main,CMD,Null,auto,chassis,conveyor,box_arm,pylon_arm
 }

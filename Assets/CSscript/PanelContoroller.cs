@@ -7,71 +7,70 @@ using UnityEngine.UI;
 
 public class PanelContoroller : MonoBehaviour
 {
-    [SerializeField] GameObject manualPanel;
     [SerializeField] GameObject chassisPanel;
     [SerializeField] GameObject conveyorPanel;
     [SerializeField] GameObject boxArmPanel;
     [SerializeField] GameObject pylonArmPanel;
     [SerializeField] GameObject autoPanel;
+    [SerializeField] GameObject manualPanel;
     [SerializeField] private SpriteSwitcher manualSwitcher;
     [SerializeField] private Button manualSwitcherButton;
-    [SerializeField] private Button chassisToConveyorButton;
-    [SerializeField] private Button conveyorToChassisButton;
-    [SerializeField] private Button chassisToPylonArmButton;
-    [SerializeField] private Button pylonArmToChassisButton;
-    [SerializeField] private Button conveyorToBoxArmButton;
-    [SerializeField] private Button boxArmToConveyorButton;
-    [SerializeField] private Button pylonArmToBoxArmButton;
-    [SerializeField] private Button boxArmToPylonArmButton;
+    [SerializeField] private Button[] boxArmButtons;
+    [SerializeField] private Button[] conveyorButtons;
+    [SerializeField] private Button[] chassisButtons;
+    [SerializeField] private Button[] pylonArmButtons;
     private bool manualSwitcherState = false;
     private bool is_autoPanel = true;
-    private bool is_manualPanel = false;
     private bool isChassisPanel = false;
     private bool isConveyorPanel = false;
     private bool isBoxArmPanel = false;
     private bool isPylonArmPanel = false;
     public GameObject JoyCpn;
-    private string previousPanel = "Auto";
 
-    void Start () {
+    void Start() 
+    {
         manualSwitcherButton.onClick.AddListener(manualSwitcherOn);
         autoOn();
-        chassisToConveyorButton.onClick.AddListener(chassisToConveyor);
-        conveyorToChassisButton.onClick.AddListener(conveyorToChassis);
-        chassisToPylonArmButton.onClick.AddListener(chassisToPylonArm);
-        pylonArmToChassisButton.onClick.AddListener(pylonArmToChassis);
-        conveyorToBoxArmButton.onClick.AddListener(conveyorToBoxArm);
-        boxArmToConveyorButton.onClick.AddListener(boxArmToConveyor);
-        pylonArmToBoxArmButton.onClick.AddListener(pylonArmToBoxArm);
-        boxArmToPylonArmButton.onClick.AddListener(boxArmToPylonArm);
+        foreach (Button button in boxArmButtons)
+        {
+            button.onClick.AddListener(boxArmOn);
+        }
+        foreach (Button button in conveyorButtons)
+        {
+            button.onClick.AddListener(conveyorOn);
+        }
+        foreach (Button button in chassisButtons)
+        {
+            button.onClick.AddListener(chassisOn);
+        }
+        foreach (Button button in pylonArmButtons)
+        {
+            button.onClick.AddListener(pylonArmOn);
+        }
     }
 
-    void autoOn(){
+    void autoOn()
+    {
         is_autoPanel = true;
-        is_manualPanel = false;
+        isBoxArmPanel = false;
+        isConveyorPanel = false;
+        isChassisPanel = false;
+        isPylonArmPanel = false;
         autoPanel.SetActive(true);
         manualPanel.SetActive(false);
+        boxArmPanel.SetActive(false);
+        conveyorPanel.SetActive(false);
+        chassisPanel.SetActive(false);
+        pylonArmPanel.SetActive(false);
         JoyCpn.GetComponent<UnityPublisher>().ResetJoystickInput();
     }
 
-    void manualOn(){
-        is_autoPanel = false;
-        is_manualPanel = true;
-        isChassisPanel = true;
-        autoPanel.SetActive(false);
-        manualPanel.SetActive(true);
-        chassisPanel.SetActive(true);
-        conveyorPanel.SetActive(false);
-        boxArmPanel.SetActive(false);
-        pylonArmPanel.SetActive(false);
-    }
-
-    void manualSwitcherOn(){
+    void manualSwitcherOn()
+    {
         manualSwitcherState = !manualSwitcherState;
         if (manualSwitcherState)
         {
-            previousPanel = GetCurrentPanel();
-            manualOn();
+            chassisOn();
         }
         else
         {
@@ -79,59 +78,62 @@ public class PanelContoroller : MonoBehaviour
         }
     }
 
-    void chassisToPylonArm(){
-        isChassisPanel = false;
-        isPylonArmPanel = true;
-        chassisPanel.SetActive(false);
-        pylonArmPanel.SetActive(true);
-    }
-
-    void conveyorToChassis(){
-        isConveyorPanel = false;
-        isChassisPanel = true;
-        conveyorPanel.SetActive(false);
-        chassisPanel.SetActive(true);
-    }
-
-    void conveyorToBoxArm(){
-        isConveyorPanel = false;
+    void boxArmOn()
+    {
+        is_autoPanel = false;
         isBoxArmPanel = true;
-        conveyorPanel.SetActive(false);
-        boxArmPanel.SetActive(true);
-    }
-
-    void chassisToConveyor(){
+        isConveyorPanel = false;
         isChassisPanel = false;
-        isConveyorPanel = true;
-        chassisPanel.SetActive(false);
-        conveyorPanel.SetActive(true);
-    }
-
-    void pylonArmToChassis(){
         isPylonArmPanel = false;
-        isChassisPanel = true;
+        autoPanel.SetActive(false);
+        manualPanel.SetActive(true);
+        boxArmPanel.SetActive(true);
+        conveyorPanel.SetActive(false);
         pylonArmPanel.SetActive(false);
-        chassisPanel.SetActive(true);
     }
 
-    void boxArmToConveyor(){
+    void conveyorOn()
+    {
+        is_autoPanel = false;
         isBoxArmPanel = false;
         isConveyorPanel = true;
+        isChassisPanel = false;
+        isPylonArmPanel = false;
+        autoPanel.SetActive(false);
+        manualPanel.SetActive(true);
         boxArmPanel.SetActive(false);
         conveyorPanel.SetActive(true);
-    }
-
-    void pylonArmToBoxArm(){
-        isPylonArmPanel = false;
-        isBoxArmPanel = true;
+        chassisPanel.SetActive(false);
         pylonArmPanel.SetActive(false);
-        boxArmPanel.SetActive(true);
     }
 
-    void boxArmToPylonArm(){
+    void chassisOn()
+    {
+        is_autoPanel = false;
         isBoxArmPanel = false;
-        isPylonArmPanel = true;
+        isConveyorPanel = false;
+        isChassisPanel = true;
+        isPylonArmPanel = false;
+        autoPanel.SetActive(false);
+        manualPanel.SetActive(true);
         boxArmPanel.SetActive(false);
+        conveyorPanel.SetActive(false);
+        chassisPanel.SetActive(true);
+        pylonArmPanel.SetActive(false);
+    }
+
+    void pylonArmOn()
+    {
+        is_autoPanel = false;
+        isBoxArmPanel = false;
+        isConveyorPanel = false;
+        isChassisPanel = false;
+        isPylonArmPanel = true;
+        autoPanel.SetActive(false);
+        manualPanel.SetActive(true);
+        boxArmPanel.SetActive(false);
+        conveyorPanel.SetActive(false);
+        chassisPanel.SetActive(false);
         pylonArmPanel.SetActive(true);
     }
 
@@ -141,9 +143,21 @@ public class PanelContoroller : MonoBehaviour
         {
             return "Auto";
         }
-        else if (is_manualPanel)
+        else if (isBoxArmPanel)
         {
-            return "Manual";
+            return "BoxArm";
+        }
+        else if (isConveyorPanel)
+        {
+            return "Conveyor";
+        }
+        else if (isChassisPanel)
+        {
+            return "Chassis";
+        }
+        else if (isPylonArmPanel)
+        {
+            return "PylonArm";
         }
         else
         {
@@ -151,32 +165,28 @@ public class PanelContoroller : MonoBehaviour
         }
     }
 
-    private string getPreviousPanel()
+    public bool getIsAuto()
     {
-        return previousPanel;
-    }
-
-    public bool getIsAuto(){
         return is_autoPanel;
     }
 
-    public bool getIsManual(){
-        return is_manualPanel;
-    }
-
-    public bool getIsChassis(){
+    public bool getIsChassis()
+    {
         return isChassisPanel;
     }
 
-    public bool getIsConveyor(){
+    public bool getIsConveyor()
+    {
         return isConveyorPanel;
     }
 
-    public bool getIsBoxArm(){
+    public bool getIsBoxArm()
+    {
         return isBoxArmPanel;
     }
 
-    public bool getIsPylonArm(){
+    public bool getIsPylonArm()
+    {
         return isPylonArmPanel;
     }
 }

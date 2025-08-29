@@ -57,8 +57,8 @@ public class UnityPublisher : MonoBehaviour
     [SerializeField] private Slider boxArmStrongSlider2;
     [SerializeField] private Slider boxArmWeakSlider1;
     [SerializeField] private Slider boxArmWeakSlider2;
-    [SerializeField] private Toggle boxArmExpandToggle1;
-    [SerializeField] private Toggle boxArmExpandToggle2;
+    [SerializeField] private Slider boxArmExpandSlider1;
+    [SerializeField] private Slider boxArmExpandSlider2;
 
     //Publish Conveyor
     private IEnumerator conveyorRoutine;
@@ -73,8 +73,8 @@ public class UnityPublisher : MonoBehaviour
     [SerializeField] private Slider pylonArmHeightSlider2;
     [SerializeField] private Slider pylonArmCollectRpmSlider1;
     [SerializeField] private Slider pylonArmCollectRpmSlider2;
-    [SerializeField] private Toggle pylonArmExpandToggle1;
-    [SerializeField] private Toggle pylonArmExpandToggle2;
+    [SerializeField] private Slider pylonArmExpandSlider1;
+    [SerializeField] private Slider pylonArmExpandSlider2;
 
     void Start()
     {
@@ -212,14 +212,8 @@ public class UnityPublisher : MonoBehaviour
             boxArm_msg.Arm_position_strong[1] = boxArmStrongSlider2.value;
             boxArm_msg.Arm_position_weak[0] = boxArmWeakSlider1.value;
             boxArm_msg.Arm_position_weak[1] = boxArmWeakSlider2.value;
-            if (boxArmExpandToggle1.GetisAwake())
-            {
-                boxArm_msg.Expand[0] = 1f;
-            }
-            if (boxArmExpandToggle2.GetisAwake())
-            {
-                boxArm_msg.Expand[1] = 1f;
-            }
+            boxArm_msg.Expand[0] = boxArmExpandSlider1.value;
+            boxArm_msg.Expand[1] = boxArmExpandSlider2.value;
             boxArm_pub.Publish(boxArm_msg);
             yield return new WaitForSeconds(pub_hz);
         }
@@ -246,14 +240,8 @@ public class UnityPublisher : MonoBehaviour
             pylonArm_msg.Height[1] = pylonArmHeightSlider2.value;
             pylonArm_msg.Collect_rpm[0] = pylonArmCollectRpmSlider1.value;
             pylonArm_msg.Collect_rpm[1] = pylonArmCollectRpmSlider2.value;
-            if(pylonArmExpandToggle1.GetisAwake())
-            {
-                pylonArm_msg.Expand[0] = 1f;
-            }
-            if(pylonArmExpandToggle2.GetisAwake())
-            {
-                pylonArm_msg.Expand[1] = 1f;
-            }
+            pylonArm_msg.Expand[0] = pylonArmExpandSlider1.value;
+            pylonArm_msg.Expand[1] = pylonArmExpandSlider2.value;
             pylonArm_pub.Publish(pylonArm_msg);
             yield return new WaitForSeconds(pub_hz);
         }
