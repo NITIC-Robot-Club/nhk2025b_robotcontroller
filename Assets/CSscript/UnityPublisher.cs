@@ -163,6 +163,14 @@ public class UnityPublisher : MonoBehaviour
         isAutomateReady = !isAutomateReady;
         isReset = false;
         SetPendingCommand();
+        if (isAutomateReady)
+        {
+            Debug.Log("Automate On");
+        }
+        else
+        {
+            Debug.Log("Automate Off");
+        }
     }
 
     private void pauseButtonClicked()
@@ -170,6 +178,7 @@ public class UnityPublisher : MonoBehaviour
         isSignalOn = false;
         isReset = false;
         SetPendingCommand();
+        Debug.Log("Emergency");
     }
 
     private void continueButtonClicked()
@@ -177,6 +186,7 @@ public class UnityPublisher : MonoBehaviour
         isSignalOn = true;
         isReset = false;
         SetPendingCommand();
+        Debug.Log("Continue");
     }
 
     private void resetButtonClicked()
@@ -184,6 +194,7 @@ public class UnityPublisher : MonoBehaviour
         isReset = true;
         SetPendingCommand();
         isReset = false;
+        Debug.Log("Reset");
     }
 
     private void SetPendingCommand()
