@@ -983,7 +983,7 @@ GameObject:
   - component: {fileID: 198129150}
   - component: {fileID: 198129149}
   m_Layer: 5
-  m_Name: Current Panel
+  m_Name: Current Panel Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7957,7 +7957,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4927757996948093629, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6276419677575669646, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: m_Pivot.x
@@ -8041,7 +8041,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6284978092501598931, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9128463606101167620, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: unit
@@ -8317,6 +8317,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Arm Weak Slider 2
       objectReference: {fileID: 0}
+    - target: {fileID: 1445060696053292423, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
+      propertyPath: m_Value
+      value: 320
+      objectReference: {fileID: 0}
+    - target: {fileID: 1445060696053292423, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
+      propertyPath: m_MaxValue
+      value: 520
+      objectReference: {fileID: 0}
+    - target: {fileID: 1445060696053292423, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
+      propertyPath: m_MinValue
+      value: 320
+      objectReference: {fileID: 0}
     - target: {fileID: 4927757996948093629, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: m_AnchorMax.x
       value: 1
@@ -8407,7 +8419,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9128463606101167620, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: unit
-      value: N
+      value: mm
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8441,6 +8453,18 @@ PrefabInstance:
     - target: {fileID: 358584288840856753, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: m_Name
       value: Arm Strong Slider 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1445060696053292423, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
+      propertyPath: m_Value
+      value: 320
+      objectReference: {fileID: 0}
+    - target: {fileID: 1445060696053292423, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
+      propertyPath: m_MaxValue
+      value: 520
+      objectReference: {fileID: 0}
+    - target: {fileID: 1445060696053292423, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
+      propertyPath: m_MinValue
+      value: 320
       objectReference: {fileID: 0}
     - target: {fileID: 4927757996948093629, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: m_AnchorMax.x
@@ -8532,7 +8556,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9128463606101167620, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: unit
-      value: N
+      value: mm
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8992,7 +9016,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4927757996948093629, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6276419677575669646, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: m_Pivot.x
@@ -9076,7 +9100,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6284978092501598931, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9128463606101167620, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: unit
@@ -10476,13 +10500,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f131068f941e9f949a9e62eddd0ba118, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  data:
-  - button: {fileID: 461902303}
-    topic: reload
-  - button: {fileID: 1549242423}
-    topic: emergency
-  - button: {fileID: 690118299}
-    topic: restart
+  data: []
 --- !u!114 &1806372279
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10548,6 +10566,7 @@ MonoBehaviour:
   automateReadyButton: {fileID: 1167131743}
   pauseButton: {fileID: 1549242423}
   continueButton: {fileID: 690118299}
+  resetButton: {fileID: 2047441313}
   boxArmHeightSlider1: {fileID: 1997651510}
   boxArmHeightSlider2: {fileID: 1729767961}
   boxArmStrongSlider1: {fileID: 1933578848}
@@ -11213,6 +11232,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Arm Strong Slider 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1445060696053292423, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
+      propertyPath: m_Value
+      value: 320
+      objectReference: {fileID: 0}
+    - target: {fileID: 1445060696053292423, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
+      propertyPath: m_MaxValue
+      value: 520
+      objectReference: {fileID: 0}
+    - target: {fileID: 1445060696053292423, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
+      propertyPath: m_MinValue
+      value: 320
+      objectReference: {fileID: 0}
     - target: {fileID: 4927757996948093629, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: m_AnchorMax.x
       value: 1
@@ -11303,7 +11334,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9128463606101167620, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: unit
-      value: N
+      value: mm
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11867,7 +11898,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2021938015
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12327,6 +12358,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Arm Weak Slider 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1445060696053292423, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
+      propertyPath: m_Value
+      value: 320
+      objectReference: {fileID: 0}
+    - target: {fileID: 1445060696053292423, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
+      propertyPath: m_MaxValue
+      value: 520
+      objectReference: {fileID: 0}
+    - target: {fileID: 1445060696053292423, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
+      propertyPath: m_MinValue
+      value: 320
+      objectReference: {fileID: 0}
     - target: {fileID: 4927757996948093629, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: m_AnchorMax.x
       value: 1
@@ -12417,7 +12460,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9128463606101167620, guid: 434c81af21dada0ccb27e2ee517a9c38, type: 3}
       propertyPath: unit
-      value: N
+      value: mm
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -41,8 +41,10 @@ public class UnityPublisher : MonoBehaviour
     [SerializeField] Button automateReadyButton;
     [SerializeField] Button pauseButton;
     [SerializeField] Button continueButton;
+    [SerializeField] Button resetButton;
     private bool isAutomateReady = true;
     private bool isSignalOn = true;
+    private bool isReset = true;
     private IEnumerator commandRoutine;
     private IPublisher<Co> command_pub; 
 
@@ -88,6 +90,7 @@ public class UnityPublisher : MonoBehaviour
         automateReadyButton.onClick.AddListener(() => automateReadyButtonClicked());
         pauseButton.onClick.AddListener( () => pauseButtonClicked());
         continueButton.onClick.AddListener( () => continueButtonClicked());
+        resetButton.onClick.AddListener( () => resetButtonClicked());
     }
 
     void Update()
@@ -102,9 +105,9 @@ public class UnityPublisher : MonoBehaviour
                 joy_pub = ros2Node.CreatePublisher<TS>("/controller/cmd_vel");
                 status_pub = ros2Node.CreatePublisher<Int32>("/behavior/set_status_num");
                 command_pub = ros2Node.CreatePublisher<Co>("/command");
-                boxArm_pub = ros2Node.CreatePublisher<Ba>("/box_arm/cmd");
-                conveyor_pub = ros2Node.CreatePublisher<Cn>("/conveyor/cmd");
-                pylonArm_pub = ros2Node.CreatePublisher<Pl>("/pylon_arm/cmd");
+                boxArm_pub = ros2Node.CreatePublisher<Ba>("/box_arm/controller_cmd");
+                conveyor_pub = ros2Node.CreatePublisher<Cn>("/conveyor/controller_cmd");
+                pylonArm_pub = ros2Node.CreatePublisher<Pl>("/pylon_arm/controller_cmd");
                 StartCoroutine(joy_routine);
                 StartCoroutine(statusRoutine);
                 StartCoroutine(commandRoutine);
@@ -158,19 +161,29 @@ public class UnityPublisher : MonoBehaviour
     private void automateReadyButtonClicked()
     {
         isAutomateReady = !isAutomateReady;
+        isReset = false;
         SetPendingCommand();
     }
 
     private void pauseButtonClicked()
     {
         isSignalOn = false;
+        isReset = false;
         SetPendingCommand();
     }
 
     private void continueButtonClicked()
     {
         isSignalOn = true;
+        isReset = false;
         SetPendingCommand();
+    }
+
+    private void resetButtonClicked()
+    {
+        isReset = true;
+        SetPendingCommand();
+        isReset = false;
     }
 
     private void SetPendingCommand()
@@ -178,6 +191,7 @@ public class UnityPublisher : MonoBehaviour
         pendingCommand = new Co();
         pendingCommand.Allow_automate = isAutomateReady;
         pendingCommand.Signal = isSignalOn;
+        pendingCommand.Reset = isReset;
     }
 
     IEnumerator publishCommandReady()
