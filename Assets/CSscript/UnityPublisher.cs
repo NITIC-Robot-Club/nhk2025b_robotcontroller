@@ -91,6 +91,12 @@ public class UnityPublisher : MonoBehaviour
         pauseButton.onClick.AddListener( () => pauseButtonClicked());
         continueButton.onClick.AddListener( () => continueButtonClicked());
         resetButton.onClick.AddListener( () => resetButtonClicked());
+        StartCoroutine(joy_routine);
+        StartCoroutine(statusRoutine);
+        StartCoroutine(commandRoutine);
+        StartCoroutine(boxArmRoutine);
+        StartCoroutine(conveyorRoutine);
+        StartCoroutine(pylonArmRoutine);
     }
 
     void Update()
@@ -108,12 +114,6 @@ public class UnityPublisher : MonoBehaviour
                 boxArm_pub = ros2Node.CreatePublisher<Ba>("/box_arm/controller_cmd");
                 conveyor_pub = ros2Node.CreatePublisher<Cn>("/conveyor/controller_cmd");
                 pylonArm_pub = ros2Node.CreatePublisher<Pl>("/pylon_arm/controller_cmd");
-                StartCoroutine(joy_routine);
-                StartCoroutine(statusRoutine);
-                StartCoroutine(commandRoutine);
-                StartCoroutine(boxArmRoutine);
-                StartCoroutine(conveyorRoutine);
-                StartCoroutine(pylonArmRoutine);
             }
         }
     }
@@ -122,7 +122,7 @@ public class UnityPublisher : MonoBehaviour
     {
         while (true)
         {
-            if (!is_auto)
+            if (!is_auto && joy_pub != null)
             {
                 ROS2Clock clock = new ROS2Clock();
                 TS sendtwist = new TS
@@ -230,7 +230,7 @@ public class UnityPublisher : MonoBehaviour
     {
         while (true)
         {
-            if (!is_auto)
+            if (!is_auto && boxArm_pub != null)
             {
                 Ba boxArm_msg = new Ba();
                 boxArm_msg.Height[0] = boxArmHeightSlider1.value;
@@ -242,8 +242,8 @@ public class UnityPublisher : MonoBehaviour
                 boxArm_msg.Expand[0] = boxArmExpandSlider1.value;
                 boxArm_msg.Expand[1] = boxArmExpandSlider2.value;
                 boxArm_pub.Publish(boxArm_msg);
-                yield return new WaitForSeconds(pub_hz);
             }
+            yield return new WaitForSeconds(pub_hz);
         }
     }
 
@@ -251,14 +251,14 @@ public class UnityPublisher : MonoBehaviour
     {
         while (true)
         {
-            if (!is_auto)
+            if (!is_auto && conveyor_pub != null)
             {
                 Cn conveyor_msg = new Cn();
                 conveyor_msg.Conveyor_rpm[0] = boxConveyorRpmSlider1.value;
                 conveyor_msg.Conveyor_rpm[1] = boxConveyorRpmSlider2.value;
                 conveyor_pub.Publish(conveyor_msg);
-                yield return new WaitForSeconds(pub_hz);
             }
+            yield return new WaitForSeconds(pub_hz);
         }
     }
 
@@ -266,7 +266,7 @@ public class UnityPublisher : MonoBehaviour
     {
         while (true)
         {
-            if (!is_auto)
+            if (!is_auto && pylonArm_pub != null)
             {
                 Pl pylonArm_msg = new Pl();
                 pylonArm_msg.Height[0] = pylonArmHeightSlider1.value;
@@ -276,8 +276,8 @@ public class UnityPublisher : MonoBehaviour
                 pylonArm_msg.Expand[0] = pylonArmExpandSlider1.value;
                 pylonArm_msg.Expand[1] = pylonArmExpandSlider2.value;
                 pylonArm_pub.Publish(pylonArm_msg);
-                yield return new WaitForSeconds(pub_hz);
             }
+            yield return new WaitForSeconds(pub_hz);
         }
     }
 }
