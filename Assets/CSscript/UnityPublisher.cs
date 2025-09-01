@@ -230,17 +230,20 @@ public class UnityPublisher : MonoBehaviour
     {
         while (true)
         {
-            Ba boxArm_msg = new Ba();
-            boxArm_msg.Height[0] = boxArmHeightSlider1.value;
-            boxArm_msg.Height[1] = boxArmHeightSlider2.value;
-            boxArm_msg.Arm_position_strong[0] = boxArmStrongSlider1.value;
-            boxArm_msg.Arm_position_strong[1] = boxArmStrongSlider2.value;
-            boxArm_msg.Arm_position_weak[0] = boxArmWeakSlider1.value;
-            boxArm_msg.Arm_position_weak[1] = boxArmWeakSlider2.value;
-            boxArm_msg.Expand[0] = boxArmExpandSlider1.value;
-            boxArm_msg.Expand[1] = boxArmExpandSlider2.value;
-            boxArm_pub.Publish(boxArm_msg);
-            yield return new WaitForSeconds(pub_hz);
+            if (!is_auto)
+            {
+                Ba boxArm_msg = new Ba();
+                boxArm_msg.Height[0] = boxArmHeightSlider1.value;
+                boxArm_msg.Height[1] = boxArmHeightSlider2.value;
+                boxArm_msg.Arm_position_strong[0] = boxArmStrongSlider1.value;
+                boxArm_msg.Arm_position_strong[1] = boxArmStrongSlider2.value;
+                boxArm_msg.Arm_position_weak[0] = boxArmWeakSlider1.value;
+                boxArm_msg.Arm_position_weak[1] = boxArmWeakSlider2.value;
+                boxArm_msg.Expand[0] = boxArmExpandSlider1.value;
+                boxArm_msg.Expand[1] = boxArmExpandSlider2.value;
+                boxArm_pub.Publish(boxArm_msg);
+                yield return new WaitForSeconds(pub_hz);
+            }
         }
     }
 
@@ -248,11 +251,14 @@ public class UnityPublisher : MonoBehaviour
     {
         while (true)
         {
-            Cn conveyor_msg = new Cn();
-            conveyor_msg.Conveyor_rpm[0] = boxConveyorRpmSlider1.value;
-            conveyor_msg.Conveyor_rpm[1] = boxConveyorRpmSlider2.value;
-            conveyor_pub.Publish(conveyor_msg);
-            yield return new WaitForSeconds(pub_hz);
+            if (!is_auto)
+            {
+                Cn conveyor_msg = new Cn();
+                conveyor_msg.Conveyor_rpm[0] = boxConveyorRpmSlider1.value;
+                conveyor_msg.Conveyor_rpm[1] = boxConveyorRpmSlider2.value;
+                conveyor_pub.Publish(conveyor_msg);
+                yield return new WaitForSeconds(pub_hz);
+            }
         }
     }
 
@@ -260,15 +266,18 @@ public class UnityPublisher : MonoBehaviour
     {
         while (true)
         {
-            Pl pylonArm_msg = new Pl();
-            pylonArm_msg.Height[0] = pylonArmHeightSlider1.value;
-            pylonArm_msg.Height[1] = pylonArmHeightSlider2.value;
-            pylonArm_msg.Collect_rpm[0] = pylonArmCollectRpmSlider1.value;
-            pylonArm_msg.Collect_rpm[1] = pylonArmCollectRpmSlider2.value;
-            pylonArm_msg.Expand[0] = pylonArmExpandSlider1.value;
-            pylonArm_msg.Expand[1] = pylonArmExpandSlider2.value;
-            pylonArm_pub.Publish(pylonArm_msg);
-            yield return new WaitForSeconds(pub_hz);
+            if (!is_auto)
+            {
+                Pl pylonArm_msg = new Pl();
+                pylonArm_msg.Height[0] = pylonArmHeightSlider1.value;
+                pylonArm_msg.Height[1] = pylonArmHeightSlider2.value;
+                pylonArm_msg.Collect_rpm[0] = pylonArmCollectRpmSlider1.value;
+                pylonArm_msg.Collect_rpm[1] = pylonArmCollectRpmSlider2.value;
+                pylonArm_msg.Expand[0] = pylonArmExpandSlider1.value;
+                pylonArm_msg.Expand[1] = pylonArmExpandSlider2.value;
+                pylonArm_pub.Publish(pylonArm_msg);
+                yield return new WaitForSeconds(pub_hz);
+            }
         }
     }
 }

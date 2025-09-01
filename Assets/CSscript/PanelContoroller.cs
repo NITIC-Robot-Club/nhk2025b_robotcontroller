@@ -27,6 +27,16 @@ public class PanelContoroller : MonoBehaviour
     private bool isPylonArmPanel = false;
     public GameObject JoyCpn;
 
+    //Visualize Information Panel
+    [SerializeField] private Button infoButton;
+    [SerializeField] private GameObject infoPanel;
+    [SerializeField] private GameObject vChassisPanel;
+    [SerializeField] private GameObject vConveyorPanel;
+    [SerializeField] private GameObject vBoxArmPanel;
+    [SerializeField] private GameObject vPylonArmPanel;
+
+    private bool isInfoActive = false;
+
     void Start() 
     {
         manualSwitcherButton.onClick.AddListener(manualSwitcherOn);
@@ -46,6 +56,49 @@ public class PanelContoroller : MonoBehaviour
         foreach (Button button in pylonArmButtons)
         {
             button.onClick.AddListener(pylonArmOn);
+        }
+    }
+
+    void Update()
+    {
+        isInfoActive = infoButton.GetComponent<HoldPanelAction>().getIsInfoActive();
+        if (isInfoActive)
+        {
+            if (is_autoPanel)
+            {
+                vChassisPanel.SetActive(true);
+                vConveyorPanel.SetActive(false);
+                vBoxArmPanel.SetActive(false);
+                vPylonArmPanel.SetActive(false);
+            }
+            else if (isChassisPanel)
+            {
+                vChassisPanel.SetActive(true);
+                vConveyorPanel.SetActive(false);
+                vBoxArmPanel.SetActive(false);
+                vPylonArmPanel.SetActive(false);
+            }
+            else if (isConveyorPanel)
+            {
+                vChassisPanel.SetActive(false);
+                vConveyorPanel.SetActive(true);
+                vBoxArmPanel.SetActive(false);
+                vPylonArmPanel.SetActive(false);
+            }
+            else if (isBoxArmPanel)
+            {
+                vChassisPanel.SetActive(false);
+                vConveyorPanel.SetActive(false);
+                vBoxArmPanel.SetActive(true);
+                vPylonArmPanel.SetActive(false);
+            }
+            else if (isPylonArmPanel)
+            {
+                vChassisPanel.SetActive(false);
+                vConveyorPanel.SetActive(false);
+                vBoxArmPanel.SetActive(false);
+                vPylonArmPanel.SetActive(true);
+            }
         }
     }
 

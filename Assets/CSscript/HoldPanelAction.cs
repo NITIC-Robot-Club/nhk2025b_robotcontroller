@@ -13,7 +13,7 @@ public class HoldPanelAction : MonoBehaviour, IPointerDownHandler, IPointerUpHan
     [SerializeField] private Sprite sprite1;
     [SerializeField] private Sprite sprite2;
     [SerializeField] private Image buttonImage;
-    private bool isHold = false;
+    private bool isInfoActive = false;
     private bool isAuto;
 
     private void Awake()
@@ -40,34 +40,34 @@ public class HoldPanelAction : MonoBehaviour, IPointerDownHandler, IPointerUpHan
 
     private void OnHold(InputAction.CallbackContext context)
     {
-        isHold = true;
+        isInfoActive = true;
         targetPanel.SetActive(true);
         buttonImage.sprite = sprite2;
     }
 
     private void OffHold(InputAction.CallbackContext context)
     {
-        isHold = false;
+        isInfoActive = false;
         targetPanel.SetActive(false);
         buttonImage.sprite = sprite1;
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        isHold = true;
+        isInfoActive = true;
         targetPanel.SetActive(true);
         buttonImage.sprite = sprite2;
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        isHold = false;
+        isInfoActive = false;
         targetPanel.SetActive(false);
         buttonImage.sprite = sprite1;
     }
 
-    public bool getIsHold()
+    public bool getIsInfoActive()
     {
-        return isHold;
+        return isInfoActive;
     }
 }

@@ -14,6 +14,9 @@ using Pa = nav_msgs.msg.Path;
 using TS = geometry_msgs.msg.TwistStamped;
 using Sw = nhk2025b_msgs.msg.Swerve;
 using Sa = nhk2025b_msgs.msg.StateArray;
+using Ba = nhk2025b_msgs.msg.BoxArm;
+using Cn = nhk2025b_msgs.msg.Conveyor;
+using Pl = nhk2025b_msgs.msg.PylonArm;
 
 public class UnitySubscriber : MonoBehaviour
 {
@@ -28,6 +31,9 @@ public class UnitySubscriber : MonoBehaviour
     private ISubscription<Sw> result_sub;
     private ISubscription<Sw> cmd_sub;
     private ISubscription<Sa> state_sub;
+    private ISubscription<Ba> boxarm_sub;
+    private ISubscription<Cn> conveyor_sub;
+    private ISubscription<Pl> pylonarm_sub;
 
     private Queue<string> recqueue = new Queue<string>();
 
@@ -111,6 +117,30 @@ public class UnitySubscriber : MonoBehaviour
     private bool stateChanged = false;
     private Vector2 initialPosition = new Vector2(0, 725);
 
+    //Visualize BoxArm State
+    private float[] boxArmExpand = new float[2];
+    private float[] boxArmHeight = new float[2];
+    private float[] boxArmPositionStrong = new float[2];
+    private float[] boxArmPositionWeak = new float[2];
+    [SerializeField] private TMP_Text boxArmExpandText;
+    [SerializeField] private TMP_Text boxArmHeightText;
+    [SerializeField] private TMP_Text boxArmPositionStrongText;
+    [SerializeField] private TMP_Text boxArmPositionWeakText;
+
+    //Visualize Conveyor State
+    private float[] conveyorRPM = new float[2]; 
+    [SerializeField] private TMP_Text conveyorRPMText;
+
+    //Visualize PylonArm State
+    private float[] pylonArmExpand = new float[2];
+    private float[] pylonArmHeight = new float[2];
+    private float[] pylonArmCollectRPM = new float[2];
+    [SerializeField] private TMP_Text pylonArmExpandText;
+    [SerializeField] private TMP_Text pylonArmHeightText;
+    [SerializeField] private TMP_Text pylonArmCollectRPMText;
+
+    private sbyte[] prevOgData = null;
+
     void Start()
     {
         unityPublisher = GameObject.Find("Pubcontoroller").GetComponent<UnityPublisher>();
@@ -164,6 +194,9 @@ public class UnitySubscriber : MonoBehaviour
                 result_sub = ros2Node.CreateSubscription<Sw>("/swerve/result", resultCallback);
                 cmd_sub = ros2Node.CreateSubscription<Sw>("/visualization/swerve", cmdCallback);
                 state_sub = ros2Node.CreateSubscription<Sa>("/behavior/avaiable_state_array", stateCallback);
+                boxarm_sub = ros2Node.CreateSubscription<Ba>("/boxarm/state", boxarmCallback);
+                conveyor_sub = ros2Node.CreateSubscription<Cn>("/conveyor/state", conveyorCallback);
+                pylonarm_sub = ros2Node.CreateSubscription<Pl>("/pylonarm/state", pylonarmCallback);
             }
         }
 
@@ -319,6 +352,20 @@ public class UnitySubscriber : MonoBehaviour
             Array.Copy(stateID, prevStateID, stateSize);
             Array.Copy(stateName, prevStateName, stateSize);
         }
+
+        //Visualize Box Arm
+        boxArmExpandText.SetText($"Expand1: {boxArmExpand[0].ToString("F2")}°\nExpand2: {boxArmExpand[1].ToString("F2")}°");
+        boxArmHeightText.SetText($"Height1: {boxArmHeight[0].ToString("F2")}mm\nHeight2: {boxArmHeight[1].ToString("F2")}mm");
+        boxArmPositionStrongText.SetText($"Position1: {boxArmPositionStrong[0].ToString("F2")}mm\nPosition2: {boxArmPositionStrong[1].ToString("F2")}mm");
+        boxArmPositionWeakText.SetText($"Position1: {boxArmPositionWeak[0].ToString("F2")}mm\nPosition2: {boxArmPositionWeak[1].ToString("F2")}mm");
+
+        //Visualize Conveyor
+        conveyorRPMText.SetText($"RPM1: {conveyorRPM[0].ToString("F2")}rpm\nRPM2: {conveyorRPM[1].ToString("F2")}rpm");
+
+        //Visualize Pylon Arm
+        pylonArmExpandText.SetText($"Expand1: {pylonArmExpand[0].ToString("F2")}°\nExpand2: {pylonArmExpand[1].ToString("F2")}°");
+        pylonArmHeightText.SetText($"Height1: {pylonArmHeight[0].ToString("F2")}mm\nHeight2: {pylonArmHeight[1].ToString("F2")}mm");
+        pylonArmCollectRPMText.SetText($"RPM1: {pylonArmCollectRPM[0].ToString("F2")}rpm\nRPM2: {pylonArmCollectRPM[1].ToString("F2")}rpm");
     }
 
     void mappingCallback(Og msg)
@@ -443,5 +490,64 @@ public class UnitySubscriber : MonoBehaviour
     {
         unityPublisher.intQueue.Enqueue(status);
         Debug.Log("SendStatus: " + status.ToString());
+    }
+
+    void boxarmCallback(Ba msg)
+    {
+        boxArmExpand[0] = msg.Expand[0];
+        boxArmExpand[1] = msg.Expand[1];
+        boxArmHeight[0] = msg.Height[0];
+        boxArmHeight[1] = msg.Height[1];
+        boxArmPositionStrong[0] = msg.Arm_position_strong[0];
+        boxArmPositionStrong[1] = msg.Arm_position_strong[1];
+        boxArmPositionWeak[0] = msg.Arm_position_weak[0];
+        boxArmPositionWeak[1] = msg.Arm_position_weak[1];
+    }
+
+    void conveyorCallback(Cn msg)
+    {
+        conveyorRPM[0] = msg.Conveyor_rpm[0];
+        conveyorRPM[1] = msg.Conveyor_rpm[1];
+    }
+
+    void pylonarmCallback(Pl msg)
+    {
+        pylonArmExpand[0] = msg.Expand[0];
+        pylonArmExpand[1] = msg.Expand[1];
+        pylonArmHeight[0] = msg.Height[0];
+        pylonArmHeight[1] = msg.Height[1];
+        pylonArmCollectRPM[0] = msg.Collect_rpm[0];
+        pylonArmCollectRPM[1] = msg.Collect_rpm[1];
+    }
+
+    void OnOccupancyGridReceived(Og msg)
+    {
+        // 受信データをバイト配列に変換
+        var newOgData = msg.Data;
+
+        // 前回データと比較（nullチェックと長さチェック）
+        bool isSame = prevOgData != null && prevOgData.Length == newOgData.Length;
+        if (isSame)
+        {
+            for (int i = 0; i < newOgData.Length; i++)
+            {
+                if (prevOgData[i] != newOgData[i])
+                {
+                    isSame = false;
+                    break;
+                }
+            }
+        }
+
+        if (isSame)
+        {
+            // データが同じなら再描画しない
+            return;
+        }
+
+        // データが異なる場合のみ再描画
+        prevOgData = (sbyte[])newOgData.Clone();
+        ogData = prevOgData;
+        ogDirty = true; // 再描画フラグ
     }
 }
