@@ -211,7 +211,13 @@ public class UnityPublisher : MonoBehaviour
         {
             if (pendingCommand != null)
             {
-                command_pub.Publish(pendingCommand);
+                Co command_msg = new Co
+                {
+                    Allow_automate = pendingCommand.Allow_automate,
+                    Signal = pendingCommand.Signal,
+                    Reset = pendingCommand.Reset
+                };
+                command_pub.Publish(command_msg);
                 pendingCommand = null;
             }
             yield return new WaitForSeconds(pub_hz);
