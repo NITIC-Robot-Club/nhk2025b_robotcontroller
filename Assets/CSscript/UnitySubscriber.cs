@@ -132,12 +132,9 @@ public class UnitySubscriber : MonoBehaviour
     [SerializeField] private TMP_Text conveyorRPMText;
 
     //Visualize PylonArm State
-    private float[] pylonArmExpand = new float[2];
-    private float[] pylonArmHeight = new float[2];
-    private float[] pylonArmCollectRPM = new float[2];
-    [SerializeField] private TMP_Text pylonArmExpandText;
-    [SerializeField] private TMP_Text pylonArmHeightText;
-    [SerializeField] private TMP_Text pylonArmCollectRPMText;
+    public float[] pylonArmExpand = new float[2];
+    public float[] pylonArmHeight = new float[2];
+    public float[] pylonArmCollectRPM = new float[2];
 
     private sbyte[] prevOgData = null;
 
@@ -361,11 +358,6 @@ public class UnitySubscriber : MonoBehaviour
 
         //Visualize Conveyor
         conveyorRPMText.SetText($"RPM1: {conveyorRPM[0].ToString("F2")}rpm\nRPM2: {conveyorRPM[1].ToString("F2")}rpm");
-
-        //Visualize Pylon Arm
-        pylonArmExpandText.SetText($"Expand1: {pylonArmExpand[0].ToString("F2")}°\nExpand2: {pylonArmExpand[1].ToString("F2")}°");
-        pylonArmHeightText.SetText($"Height1: {pylonArmHeight[0].ToString("F2")}mm\nHeight2: {pylonArmHeight[1].ToString("F2")}mm");
-        pylonArmCollectRPMText.SetText($"RPM1: {pylonArmCollectRPM[0].ToString("F2")}rpm\nRPM2: {pylonArmCollectRPM[1].ToString("F2")}rpm");
     }
 
     void mappingCallback(Og msg)
@@ -522,10 +514,8 @@ public class UnitySubscriber : MonoBehaviour
 
     void OnOccupancyGridReceived(Og msg)
     {
-        // 受信データをバイト配列に変換
         var newOgData = msg.Data;
 
-        // 前回データと比較（nullチェックと長さチェック）
         bool isSame = prevOgData != null && prevOgData.Length == newOgData.Length;
         if (isSame)
         {
@@ -541,13 +531,11 @@ public class UnitySubscriber : MonoBehaviour
 
         if (isSame)
         {
-            // データが同じなら再描画しない
             return;
         }
 
-        // データが異なる場合のみ再描画
         prevOgData = (sbyte[])newOgData.Clone();
         ogData = prevOgData;
-        ogDirty = true; // 再描画フラグ
+        ogDirty = true;
     }
 }
