@@ -118,10 +118,10 @@ public class UnitySubscriber : MonoBehaviour
     private Vector2 initialPosition = new Vector2(0, 725);
 
     //Visualize BoxArm State
-    private float[] boxArmExpand = new float[2];
-    private float[] boxArmHeight = new float[2];
-    private float[] boxArmPositionStrong = new float[2];
-    private float[] boxArmPositionWeak = new float[2];
+    public float[] boxArmExpand = new float[2];
+    public float[] boxArmHeight = new float[2];
+    public float[] boxArmPositionStrong = new float[2];
+    public float[] boxArmPositionWeak = new float[2];
     [SerializeField] private TMP_Text boxArmExpandText;
     [SerializeField] private TMP_Text boxArmHeightText;
     [SerializeField] private TMP_Text boxArmPositionStrongText;

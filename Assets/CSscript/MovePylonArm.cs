@@ -42,10 +42,10 @@ public class MovePylonArm : MonoBehaviour
 
     void Update()
     {
-        expand[0] = leftExpandSlider.value;
-        expand[1] = rightExpandSlider.value;
-        height[0] = leftHeightSlider.value;
-        height[1] = rightHeightSlider.value;
+        expand[0] = unitySubscriber.pylonArmExpand[0];
+        expand[1] = unitySubscriber.pylonArmExpand[1];
+        height[0] = unitySubscriber.pylonArmHeight[0];
+        height[1] = unitySubscriber.pylonArmHeight[1];
         leftArmText.SetText($"Left Arm - \n  Height: {height[0]}\n  Strong: {strength[0]}");
         rightArmText.SetText($"Right Arm - \n  Height: {height[1]}\n  Strong: {strength[1]}");
         expandText.SetText($"Expand - Left: {expand[0]}, Right: {expand[1]}");

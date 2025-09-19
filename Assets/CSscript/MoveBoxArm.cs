@@ -49,12 +49,12 @@ public class MoveBoxArm : MonoBehaviour
 
     void Update()
     {
-        expand[0] = leftExpandSlider.value;
-        expand[1] = rightExpandSlider.value;
-        height[0] = leftHeightSlider.value;
-        height[1] = rightHeightSlider.value;
-        strength[0] = leftStrengthSlider.value;
-        strength[1] = rightStrengthSlider.value;
+        expand[0] = unitySubscriber.boxArmExpand[0];
+        expand[1] = unitySubscriber.boxArmExpand[1];
+        height[0] = unitySubscriber.boxArmHeight[0];
+        height[1] = unitySubscriber.boxArmHeight[1];
+        strength[0] = unitySubscriber.boxArmPositionStrong[0];
+        strength[1] = unitySubscriber.boxArmPositionStrong[1];
         leftText.SetText($"Left Arm - \n  Expand: {expand[0]}\n  Height: {height[0]}\n  Strength: {strength[0]}");
         rightText.SetText($"Right Arm - \n  Expand: {expand[1]}\n  Height: {height[1]}\n  Strength: {strength[1]}");
 
