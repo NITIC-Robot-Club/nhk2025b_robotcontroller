@@ -316,10 +316,14 @@ public class UnitySubscriber : MonoBehaviour
                 if (currentState == stateName[i])
                 {
                     button = Instantiate(buttonPrefabBlue);
+                    var image = button.GetComponent<Image>();
+                    if (image != null) image.color = Color.blue;
                 }
                 else
                 {
                     button = Instantiate(buttonPrefabYellow);
+                    var image = button.GetComponent<Image>();
+                    if (image != null) image.color = Color.yellow;
                 }
                 button.transform.SetParent(buttonParent.transform, false);
                 button.transform.localScale = Vector3.one;

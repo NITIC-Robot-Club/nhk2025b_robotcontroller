@@ -14,8 +14,8 @@ public class Toggle : MonoBehaviour
     private Sequence sequence;
     private static readonly Color OFF_BG_COLOR = new Color(0.92f, 0.92f, 0.92f);
     private static readonly Color ON_BG_COLOR = new Color(0.2f, 0.84f, 0.3f);
-    private static readonly Color ORIGINAL_TEXT_COLOR = new Color(0.0f, 0.0f, 1.0f);
-    private static readonly Color TARGET_TEXT_COLOR = new Color(1.0f, 0.0f, 0.0f);
+    [SerializeField] private Color ORIGINAL_TEXT_COLOR = new Color(1.0f, 0.0f, 0.0f);
+    [SerializeField] private Color TARGET_TEXT_COLOR = new Color(0.0f, 0.0f, 1.0f);
     private const float SWITCH_DURATION = 0.36f;
     [SerializeField] private Toggle targetToggle;
     [SerializeField] private TextMeshProUGUI displayText;

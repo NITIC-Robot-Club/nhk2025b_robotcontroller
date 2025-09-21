@@ -9,6 +9,7 @@ using topicSt = std_msgs.msg.String;
 using twist = geometry_msgs.msg.Twist;
 using TS = geometry_msgs.msg.TwistStamped;
 using Int32 = std_msgs.msg.Int32;
+using Bool = std_msgs.msg.Bool;
 using Co = nhk2025b_msgs.msg.Command;
 using Ba = nhk2025b_msgs.msg.BoxArm;
 using Cn = nhk2025b_msgs.msg.Conveyor;
@@ -23,6 +24,7 @@ public class UnityPublisher : MonoBehaviour
     [System.NonSerialized] public Queue<string> queue = new Queue<string>();
     [System.NonSerialized] public Queue<int> intQueue = new Queue<int>();
     [System.NonSerialized] public Queue<twist> twistmsgs = new Queue<twist>();
+    [System.NonSerialized] public Queue<Co> commandmsgs = new Queue<Co>();
     [SerializeField] private float pub_hz = 0.05f;
     private bool is_auto;
 
@@ -42,13 +44,11 @@ public class UnityPublisher : MonoBehaviour
     [SerializeField] Button pauseButton;
     [SerializeField] Button continueButton;
     [SerializeField] Button resetButton;
-    private bool isAutomateReady = true;
-    private bool isSignalOn = true;
-    private bool isReset = true;
     private IEnumerator commandRoutine;
+    private IEnumerator publishButtonCommandRoutine;
     private IPublisher<Co> command_pub; 
-
-    private Co pendingCommand = null;
+    private bool allowAutomate = true;
+    private bool signal = true;
 
     //Publish BoxArm
     private IEnumerator boxArmRoutine;
@@ -78,12 +78,19 @@ public class UnityPublisher : MonoBehaviour
     [SerializeField] private Slider pylonArmExpandSlider1;
     [SerializeField] private Slider pylonArmExpandSlider2;
 
+    //Publish Field Status
+    [SerializeField] private Toggle fieldToggle;
+    private IPublisher<Bool> field_pub;
+    private IEnumerator fieldRoutine;
+    private bool isRed = true;
+
     void Start()
     {
         TryGetComponent(out ros2Unity);
         joy_routine = JoyAsync();
         statusRoutine = publishStatus();
         commandRoutine = publishCommandReady();
+        publishButtonCommandRoutine = publishButtonCommand();
         boxArmRoutine = publishBoxArm();
         conveyorRoutine = publishConveyor();
         pylonArmRoutine = publishPylonArm();
@@ -91,12 +98,16 @@ public class UnityPublisher : MonoBehaviour
         pauseButton.onClick.AddListener( () => pauseButtonClicked());
         continueButton.onClick.AddListener( () => continueButtonClicked());
         resetButton.onClick.AddListener( () => resetButtonClicked());
+        fieldRoutine = publishFieldStatus();
+
         StartCoroutine(joy_routine);
         StartCoroutine(statusRoutine);
         StartCoroutine(commandRoutine);
+        StartCoroutine(publishButtonCommandRoutine);
         StartCoroutine(boxArmRoutine);
         StartCoroutine(conveyorRoutine);
         StartCoroutine(pylonArmRoutine);
+        StartCoroutine(fieldRoutine);
     }
 
     void Update()
@@ -114,8 +125,10 @@ public class UnityPublisher : MonoBehaviour
                 boxArm_pub = ros2Node.CreatePublisher<Ba>("/box_arm/controller_cmd");
                 conveyor_pub = ros2Node.CreatePublisher<Cn>("/conveyor/controller_cmd");
                 pylonArm_pub = ros2Node.CreatePublisher<Pl>("/pylon_arm/controller_cmd");
+                field_pub = ros2Node.CreatePublisher<Bool>("/is_red");
             }
         }
+        isRed = fieldToggle.GetisAwake();
     }
 
     IEnumerator JoyAsync()
@@ -160,65 +173,53 @@ public class UnityPublisher : MonoBehaviour
 
     private void automateReadyButtonClicked()
     {
-        isAutomateReady = !isAutomateReady;
-        isReset = false;
-        SetPendingCommand();
-        if (isAutomateReady)
-        {
-            Debug.Log("Automate On");
-        }
-        else
-        {
-            Debug.Log("Automate Off");
-        }
+        allowAutomate = !allowAutomate;
+        commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset = false });
     }
 
     private void pauseButtonClicked()
     {
-        isSignalOn = false;
-        isReset = false;
-        SetPendingCommand();
-        Debug.Log("Emergency");
+        signal = false;
+        commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset = false });
     }
 
     private void continueButtonClicked()
     {
-        isSignalOn = true;
-        isReset = false;
-        SetPendingCommand();
-        Debug.Log("Continue");
+        signal = true;
+        commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset = false });
     }
 
     private void resetButtonClicked()
     {
-        isReset = true;
-        SetPendingCommand();
-        isReset = false;
-        Debug.Log("Reset");
-    }
-
-    private void SetPendingCommand()
-    {
-        pendingCommand = new Co();
-        pendingCommand.Allow_automate = isAutomateReady;
-        pendingCommand.Signal = isSignalOn;
-        pendingCommand.Reset = isReset;
+        commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset = true });
     }
 
     IEnumerator publishCommandReady()
     {
         while (true)
         {
-            if (pendingCommand != null)
+            if (command_pub != null)
             {
-                Co command_msg = new Co
+                Co command = new Co
                 {
-                    Allow_automate = pendingCommand.Allow_automate,
-                    Signal = pendingCommand.Signal,
-                    Reset = pendingCommand.Reset
+                    Allow_automate = allowAutomate,
+                    Signal = signal,
+                    Reset = false
                 };
+                command_pub.Publish(command);
+            }
+            yield return new WaitForSeconds(pub_hz);
+        }
+    }
+
+    IEnumerator publishButtonCommand()
+    {
+        while (true)
+        {
+            if (commandmsgs.Count != 0)
+            {
+                Co command_msg = commandmsgs.Dequeue();
                 command_pub.Publish(command_msg);
-                pendingCommand = null;
             }
             yield return new WaitForSeconds(pub_hz);
         }
@@ -282,6 +283,20 @@ public class UnityPublisher : MonoBehaviour
                 pylonArm_msg.Expand[0] = pylonArmExpandSlider1.value;
                 pylonArm_msg.Expand[1] = pylonArmExpandSlider2.value;
                 pylonArm_pub.Publish(pylonArm_msg);
+            }
+            yield return new WaitForSeconds(pub_hz);
+        }
+    }
+
+    IEnumerator publishFieldStatus()
+    {
+        while (true)
+        {
+            if (field_pub != null)
+            {
+                Bool field_msg = new Bool();
+                field_msg.Data = isRed;
+                field_pub.Publish(field_msg);
             }
             yield return new WaitForSeconds(pub_hz);
         }

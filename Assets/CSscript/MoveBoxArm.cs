@@ -25,12 +25,6 @@ public class MoveBoxArm : MonoBehaviour
     private float[] expand = new float[2];
     private float[] height = new float[2];
     private float[] strength = new float[2];
-    [SerializeField] private Slider leftExpandSlider;
-    [SerializeField] private Slider rightExpandSlider;
-    [SerializeField] private Slider leftHeightSlider;
-    [SerializeField] private Slider rightHeightSlider;
-    [SerializeField] private Slider leftStrengthSlider;
-    [SerializeField] private Slider rightStrengthSlider;
 
     private UnitySubscriber unitySubscriber;
     private Vector3 leftInitialPosition;
