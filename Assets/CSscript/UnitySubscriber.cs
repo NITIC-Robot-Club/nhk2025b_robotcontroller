@@ -17,6 +17,7 @@ using Sa = nhk2025b_msgs.msg.StateArray;
 using Ba = nhk2025b_msgs.msg.BoxArm;
 using Cn = nhk2025b_msgs.msg.Conveyor;
 using Pl = nhk2025b_msgs.msg.PylonArm;
+using Rs = nhk2025b_msgs.msg.RobotStatus;
 
 public class UnitySubscriber : MonoBehaviour
 {
@@ -34,6 +35,7 @@ public class UnitySubscriber : MonoBehaviour
     private ISubscription<Ba> boxarm_sub;
     private ISubscription<Cn> conveyor_sub;
     private ISubscription<Pl> pylonarm_sub;
+    private ISubscription<Rs> robotstatus_sub;
 
     private Queue<string> recqueue = new Queue<string>();
 
@@ -138,6 +140,9 @@ public class UnitySubscriber : MonoBehaviour
 
     private sbyte[] prevOgData = null;
 
+    // private ISubscription<Rs> robotstatus_sub;
+    public float[] voltage = new float[3];
+
     void Start()
     {
         unityPublisher = GameObject.Find("Pubcontoroller").GetComponent<UnityPublisher>();
@@ -194,6 +199,7 @@ public class UnitySubscriber : MonoBehaviour
                 boxarm_sub = ros2Node.CreateSubscription<Ba>("/boxarm/state", boxarmCallback);
                 conveyor_sub = ros2Node.CreateSubscription<Cn>("/conveyor/state", conveyorCallback);
                 pylonarm_sub = ros2Node.CreateSubscription<Pl>("/pylonarm/state", pylonarmCallback);
+                robotstatus_sub = ros2Node.CreateSubscription<Rs>("/robot_status", robotstatusCallback);
             }
         }
 
@@ -541,5 +547,12 @@ public class UnitySubscriber : MonoBehaviour
         prevOgData = (sbyte[])newOgData.Clone();
         ogData = prevOgData;
         ogDirty = true;
+    }
+
+    void robotstatusCallback(Rs msg)
+    {
+        voltage[0] = msg.Voltage[0];
+        voltage[1] = msg.Voltage[1];
+        voltage[2] = msg.Voltage[2];
     }
 }

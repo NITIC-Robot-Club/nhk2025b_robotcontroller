@@ -240,12 +240,12 @@ public class UnityPublisher : MonoBehaviour
             if (!is_auto && boxArm_pub != null)
             {
                 Ba boxArm_msg = new Ba();
-                boxArm_msg.Height[0] = boxArmHeightSlider1.value;
-                boxArm_msg.Height[1] = boxArmHeightSlider2.value;
-                boxArm_msg.Arm_position_strong[0] = boxArmStrongSlider1.value;
-                boxArm_msg.Arm_position_strong[1] = boxArmStrongSlider2.value;
-                boxArm_msg.Arm_position_weak[0] = boxArmWeakSlider1.value;
-                boxArm_msg.Arm_position_weak[1] = boxArmWeakSlider2.value;
+                boxArm_msg.Height[0] = boxArmHeightSlider1.value / 1000.0f;
+                boxArm_msg.Height[1] = boxArmHeightSlider2.value / 1000.0f;
+                boxArm_msg.Arm_position_strong[0] = boxArmStrongSlider1.value / 1000.0f;
+                boxArm_msg.Arm_position_strong[1] = boxArmStrongSlider2.value / 1000.0f;
+                boxArm_msg.Arm_position_weak[0] = boxArmWeakSlider1.value / 1000.0f;
+                boxArm_msg.Arm_position_weak[1] = boxArmWeakSlider2.value / 1000.0f;
                 boxArm_msg.Expand[0] = boxArmExpandSlider1.value;
                 boxArm_msg.Expand[1] = boxArmExpandSlider2.value;
                 boxArm_pub.Publish(boxArm_msg);
@@ -276,8 +276,8 @@ public class UnityPublisher : MonoBehaviour
             if (!is_auto && pylonArm_pub != null)
             {
                 Pl pylonArm_msg = new Pl();
-                pylonArm_msg.Height[0] = pylonArmHeightSlider1.value;
-                pylonArm_msg.Height[1] = pylonArmHeightSlider2.value;
+                pylonArm_msg.Height[0] = pylonArmHeightSlider1.value / 1000.0f;
+                pylonArm_msg.Height[1] = pylonArmHeightSlider2.value / 1000.0f;
                 pylonArm_msg.Collect_rpm[0] = pylonArmCollectRpmSlider1.value;
                 pylonArm_msg.Collect_rpm[1] = pylonArmCollectRpmSlider2.value;
                 pylonArm_msg.Expand[0] = pylonArmExpandSlider1.value;
