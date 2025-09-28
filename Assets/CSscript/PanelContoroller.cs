@@ -11,6 +11,7 @@ public class PanelContoroller : MonoBehaviour
     [SerializeField] GameObject conveyorPanel;
     [SerializeField] GameObject boxArmPanel;
     [SerializeField] GameObject pylonArmPanel;
+    [SerializeField] GameObject eArmPanel;
     [SerializeField] GameObject autoPanel;
     [SerializeField] GameObject manualPanel;
     [SerializeField] private SpriteSwitcher manualSwitcher;
@@ -19,12 +20,14 @@ public class PanelContoroller : MonoBehaviour
     [SerializeField] private Button[] conveyorButtons;
     [SerializeField] private Button[] chassisButtons;
     [SerializeField] private Button[] pylonArmButtons;
-    private bool manualSwitcherState = false;
+    [SerializeField] private Button[] eArmButtons;
+    private bool manualSwitcherState = true;
     private bool is_autoPanel = true;
     private bool isChassisPanel = false;
     private bool isConveyorPanel = false;
     private bool isBoxArmPanel = false;
     private bool isPylonArmPanel = false;
+    private bool isEArmPanel = false;
     public GameObject JoyCpn;
 
     //Visualize Information Panel
@@ -34,13 +37,15 @@ public class PanelContoroller : MonoBehaviour
     [SerializeField] private GameObject vConveyorPanel;
     [SerializeField] private GameObject vBoxArmPanel;
     [SerializeField] private GameObject vPylonArmPanel;
+    [SerializeField] private GameObject vEArmPanel;
 
     private bool isInfoActive = false;
 
     void Start() 
     {
         manualSwitcherButton.onClick.AddListener(manualSwitcherOn);
-        autoOn();
+        // autoOn();
+        chassisOn();
         foreach (Button button in boxArmButtons)
         {
             button.onClick.AddListener(boxArmOn);
@@ -57,6 +62,10 @@ public class PanelContoroller : MonoBehaviour
         {
             button.onClick.AddListener(pylonArmOn);
         }
+        foreach (Button button in eArmButtons)
+        {
+            button.onClick.AddListener(eArmOn);
+        }
     }
 
     void Update()
@@ -70,6 +79,7 @@ public class PanelContoroller : MonoBehaviour
                 vConveyorPanel.SetActive(false);
                 vBoxArmPanel.SetActive(false);
                 vPylonArmPanel.SetActive(false);
+                vEArmPanel.SetActive(false);
             }
             else if (isChassisPanel)
             {
@@ -77,6 +87,7 @@ public class PanelContoroller : MonoBehaviour
                 vConveyorPanel.SetActive(false);
                 vBoxArmPanel.SetActive(false);
                 vPylonArmPanel.SetActive(false);
+                vEArmPanel.SetActive(false);
             }
             else if (isConveyorPanel)
             {
@@ -84,6 +95,7 @@ public class PanelContoroller : MonoBehaviour
                 vConveyorPanel.SetActive(true);
                 vBoxArmPanel.SetActive(false);
                 vPylonArmPanel.SetActive(false);
+                vEArmPanel.SetActive(false);
             }
             else if (isBoxArmPanel)
             {
@@ -91,6 +103,7 @@ public class PanelContoroller : MonoBehaviour
                 vConveyorPanel.SetActive(false);
                 vBoxArmPanel.SetActive(true);
                 vPylonArmPanel.SetActive(false);
+                vEArmPanel.SetActive(false);
             }
             else if (isPylonArmPanel)
             {
@@ -98,6 +111,15 @@ public class PanelContoroller : MonoBehaviour
                 vConveyorPanel.SetActive(false);
                 vBoxArmPanel.SetActive(false);
                 vPylonArmPanel.SetActive(true);
+                vEArmPanel.SetActive(false);
+            }
+            else if (isEArmPanel)
+            {
+                vChassisPanel.SetActive(false);
+                vConveyorPanel.SetActive(false);
+                vBoxArmPanel.SetActive(false);
+                vPylonArmPanel.SetActive(false);
+                vEArmPanel.SetActive(true);
             }
         }
     }
@@ -109,12 +131,14 @@ public class PanelContoroller : MonoBehaviour
         isConveyorPanel = false;
         isChassisPanel = false;
         isPylonArmPanel = false;
+        isEArmPanel = false;
         autoPanel.SetActive(true);
         manualPanel.SetActive(false);
         boxArmPanel.SetActive(false);
         conveyorPanel.SetActive(false);
         chassisPanel.SetActive(false);
         pylonArmPanel.SetActive(false);
+        eArmPanel.SetActive(false);
         JoyCpn.GetComponent<UnityPublisher>().ResetJoystickInput();
     }
 
@@ -138,11 +162,14 @@ public class PanelContoroller : MonoBehaviour
         isConveyorPanel = false;
         isChassisPanel = false;
         isPylonArmPanel = false;
+        isEArmPanel = false;
         autoPanel.SetActive(false);
         manualPanel.SetActive(true);
         boxArmPanel.SetActive(true);
         conveyorPanel.SetActive(false);
         pylonArmPanel.SetActive(false);
+        chassisPanel.SetActive(false);
+        eArmPanel.SetActive(false);
     }
 
     void conveyorOn()
@@ -152,12 +179,14 @@ public class PanelContoroller : MonoBehaviour
         isConveyorPanel = true;
         isChassisPanel = false;
         isPylonArmPanel = false;
+        isEArmPanel = false;
         autoPanel.SetActive(false);
         manualPanel.SetActive(true);
         boxArmPanel.SetActive(false);
         conveyorPanel.SetActive(true);
         chassisPanel.SetActive(false);
         pylonArmPanel.SetActive(false);
+        eArmPanel.SetActive(false);
     }
 
     void chassisOn()
@@ -167,12 +196,14 @@ public class PanelContoroller : MonoBehaviour
         isConveyorPanel = false;
         isChassisPanel = true;
         isPylonArmPanel = false;
+        isEArmPanel = false;
         autoPanel.SetActive(false);
         manualPanel.SetActive(true);
         boxArmPanel.SetActive(false);
         conveyorPanel.SetActive(false);
         chassisPanel.SetActive(true);
         pylonArmPanel.SetActive(false);
+        eArmPanel.SetActive(false);
     }
 
     void pylonArmOn()
@@ -182,12 +213,31 @@ public class PanelContoroller : MonoBehaviour
         isConveyorPanel = false;
         isChassisPanel = false;
         isPylonArmPanel = true;
+        isEArmPanel = false;
         autoPanel.SetActive(false);
         manualPanel.SetActive(true);
         boxArmPanel.SetActive(false);
         conveyorPanel.SetActive(false);
         chassisPanel.SetActive(false);
         pylonArmPanel.SetActive(true);
+        eArmPanel.SetActive(false);
+    }
+
+    void eArmOn()
+    {
+        is_autoPanel = false;
+        isBoxArmPanel = false;
+        isConveyorPanel = false;
+        isChassisPanel = false;
+        isPylonArmPanel = false;
+        isEArmPanel = true;
+        autoPanel.SetActive(false);
+        manualPanel.SetActive(true);
+        boxArmPanel.SetActive(false);
+        conveyorPanel.SetActive(false);
+        chassisPanel.SetActive(false);
+        pylonArmPanel.SetActive(false);
+        eArmPanel.SetActive(true);
     }
 
     string GetCurrentPanel()
@@ -211,6 +261,10 @@ public class PanelContoroller : MonoBehaviour
         else if (isPylonArmPanel)
         {
             return "PylonArm";
+        }
+        else if (isEArmPanel)
+        {
+            return "EArm";
         }
         else
         {
@@ -241,5 +295,10 @@ public class PanelContoroller : MonoBehaviour
     public bool getIsPylonArm()
     {
         return isPylonArmPanel;
+    }
+
+    public bool getIsEArm()
+    {
+        return isEArmPanel;
     }
 }

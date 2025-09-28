@@ -32,5 +32,9 @@ public class CurrentPanel : MonoBehaviour
         {
             viewerText.text = "Pylon Arm";
         }
+        else if(uiope.GetComponent<PanelContoroller>().getIsEArm())
+        {
+            viewerText.text = "E Arm";
+        }
     }
 }

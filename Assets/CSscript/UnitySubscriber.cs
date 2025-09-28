@@ -196,9 +196,9 @@ public class UnitySubscriber : MonoBehaviour
                 result_sub = ros2Node.CreateSubscription<Sw>("/swerve/result", resultCallback);
                 cmd_sub = ros2Node.CreateSubscription<Sw>("/visualization/swerve", cmdCallback);
                 state_sub = ros2Node.CreateSubscription<Sa>("/behavior/avaiable_state_array", stateCallback);
-                boxarm_sub = ros2Node.CreateSubscription<Ba>("/boxarm/state", boxarmCallback);
-                conveyor_sub = ros2Node.CreateSubscription<Cn>("/conveyor/state", conveyorCallback);
-                pylonarm_sub = ros2Node.CreateSubscription<Pl>("/pylonarm/state", pylonarmCallback);
+                boxarm_sub = ros2Node.CreateSubscription<Ba>("/box_arm/result", boxarmCallback);
+                conveyor_sub = ros2Node.CreateSubscription<Cn>("/conveyor/result", conveyorCallback);
+                pylonarm_sub = ros2Node.CreateSubscription<Pl>("/pylon_arm/result", pylonarmCallback);
                 robotstatus_sub = ros2Node.CreateSubscription<Rs>("/robot_status", robotstatusCallback);
             }
         }

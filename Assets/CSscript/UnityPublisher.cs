@@ -14,6 +14,7 @@ using Co = nhk2025b_msgs.msg.Command;
 using Ba = nhk2025b_msgs.msg.BoxArm;
 using Cn = nhk2025b_msgs.msg.Conveyor;
 using Pl = nhk2025b_msgs.msg.PylonArm;
+using EA = nhk2025b_msgs.msg.EArm;
 using TMPro;
 public class UnityPublisher : MonoBehaviour
 {
@@ -47,8 +48,8 @@ public class UnityPublisher : MonoBehaviour
     private IEnumerator commandRoutine;
     private IEnumerator publishButtonCommandRoutine;
     private IPublisher<Co> command_pub; 
-    private bool allowAutomate = true;
-    private bool signal = true;
+    private bool allowAutomate = false;
+    private bool signal = false;
 
     //Publish BoxArm
     private IEnumerator boxArmRoutine;
@@ -84,16 +85,23 @@ public class UnityPublisher : MonoBehaviour
     private IEnumerator fieldRoutine;
     private bool isRed = true;
 
+    //Publish EArm
+    private IEnumerator eArmRoutine;
+    private IPublisher<EA> eArm_pub;
+    [SerializeField] private Slider eArmGetSlider;
+    [SerializeField] private Slider eArmExpandSlider;
+
     void Start()
     {
         TryGetComponent(out ros2Unity);
         joy_routine = JoyAsync();
         statusRoutine = publishStatus();
         commandRoutine = publishCommandReady();
-        publishButtonCommandRoutine = publishButtonCommand();
+        // publishButtonCommandRoutine = publishButtonCommand();
         boxArmRoutine = publishBoxArm();
         conveyorRoutine = publishConveyor();
         pylonArmRoutine = publishPylonArm();
+        eArmRoutine = publishEArm();
         automateReadyButton.onClick.AddListener(() => automateReadyButtonClicked());
         pauseButton.onClick.AddListener( () => pauseButtonClicked());
         continueButton.onClick.AddListener( () => continueButtonClicked());
@@ -103,11 +111,12 @@ public class UnityPublisher : MonoBehaviour
         StartCoroutine(joy_routine);
         StartCoroutine(statusRoutine);
         StartCoroutine(commandRoutine);
-        StartCoroutine(publishButtonCommandRoutine);
+        // StartCoroutine(publishButtonCommandRoutine);
         StartCoroutine(boxArmRoutine);
         StartCoroutine(conveyorRoutine);
         StartCoroutine(pylonArmRoutine);
         StartCoroutine(fieldRoutine);
+        StartCoroutine(eArmRoutine);
     }
 
     void Update()
@@ -122,9 +131,10 @@ public class UnityPublisher : MonoBehaviour
                 joy_pub = ros2Node.CreatePublisher<TS>("/controller/cmd_vel");
                 status_pub = ros2Node.CreatePublisher<Int32>("/behavior/set_status_num");
                 command_pub = ros2Node.CreatePublisher<Co>("/command");
-                boxArm_pub = ros2Node.CreatePublisher<Ba>("/box_arm/controller_cmd");
-                conveyor_pub = ros2Node.CreatePublisher<Cn>("/conveyor/controller_cmd");
-                pylonArm_pub = ros2Node.CreatePublisher<Pl>("/pylon_arm/controller_cmd");
+                boxArm_pub = ros2Node.CreatePublisher<Ba>("/box_arm/cmd");
+                conveyor_pub = ros2Node.CreatePublisher<Cn>("/conveyor/cmd");
+                pylonArm_pub = ros2Node.CreatePublisher<Pl>("/pylon_arm/cmd");
+                eArm_pub = ros2Node.CreatePublisher<EA>("/e_arm/cmd");
                 field_pub = ros2Node.CreatePublisher<Bool>("/is_red");
             }
         }
@@ -191,7 +201,10 @@ public class UnityPublisher : MonoBehaviour
 
     private void resetButtonClicked()
     {
-        commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset = true });
+        for (int i = 0; i < 3; i++)
+        {
+            commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset = true });
+        }
     }
 
     IEnumerator publishCommandReady()
@@ -200,30 +213,38 @@ public class UnityPublisher : MonoBehaviour
         {
             if (command_pub != null)
             {
-                Co command = new Co
+                if (commandmsgs.Count == 0)
                 {
-                    Allow_automate = allowAutomate,
-                    Signal = signal,
-                    Reset = false
-                };
-                command_pub.Publish(command);
+                    Co command = new Co
+                    {
+                        Allow_automate = allowAutomate,
+                        Signal = signal,
+                        Reset = false
+                    };
+                    command_pub.Publish(command);
+                }                
+                else 
+                {
+                    Co command_msg = commandmsgs.Dequeue();
+                    command_pub.Publish(command_msg);
+                }
             }
             yield return new WaitForSeconds(pub_hz);
         }
     }
 
-    IEnumerator publishButtonCommand()
-    {
-        while (true)
-        {
-            if (commandmsgs.Count != 0)
-            {
-                Co command_msg = commandmsgs.Dequeue();
-                command_pub.Publish(command_msg);
-            }
-            yield return new WaitForSeconds(pub_hz);
-        }
-    }
+    // IEnumerator publishButtonCommand()
+    // {
+    //     while (true)
+    //     {
+    //         if (commandmsgs.Count != 0)
+    //         {
+    //             Co command_msg = commandmsgs.Dequeue();
+    //             command_pub.Publish(command_msg);
+    //         }
+    //         yield return new WaitForSeconds(pub_hz);
+    //     }
+    // }
 
     public void ResetJoystickInput()
     {
@@ -240,14 +261,14 @@ public class UnityPublisher : MonoBehaviour
             if (!is_auto && boxArm_pub != null)
             {
                 Ba boxArm_msg = new Ba();
-                boxArm_msg.Height[0] = boxArmHeightSlider1.value / 1000.0f;
-                boxArm_msg.Height[1] = boxArmHeightSlider2.value / 1000.0f;
-                boxArm_msg.Arm_position_strong[0] = boxArmStrongSlider1.value / 1000.0f;
-                boxArm_msg.Arm_position_strong[1] = boxArmStrongSlider2.value / 1000.0f;
-                boxArm_msg.Arm_position_weak[0] = boxArmWeakSlider1.value / 1000.0f;
-                boxArm_msg.Arm_position_weak[1] = boxArmWeakSlider2.value / 1000.0f;
-                boxArm_msg.Expand[0] = boxArmExpandSlider1.value;
-                boxArm_msg.Expand[1] = boxArmExpandSlider2.value;
+                boxArm_msg.Height[0] = boxArmHeightSlider1.value;
+                boxArm_msg.Height[1] = boxArmHeightSlider2.value;
+                boxArm_msg.Arm_position_strong[0] = boxArmStrongSlider1.value;
+                boxArm_msg.Arm_position_strong[1] = boxArmStrongSlider2.value;
+                boxArm_msg.Arm_position_weak[0] = boxArmWeakSlider1.value;
+                boxArm_msg.Arm_position_weak[1] = boxArmWeakSlider2.value;
+                boxArm_msg.Expand[0] = boxArmExpandSlider1.value * Mathf.Deg2Rad;
+                boxArm_msg.Expand[1] = boxArmExpandSlider2.value * Mathf.Deg2Rad;
                 boxArm_pub.Publish(boxArm_msg);
             }
             yield return new WaitForSeconds(pub_hz);
@@ -280,8 +301,8 @@ public class UnityPublisher : MonoBehaviour
                 pylonArm_msg.Height[1] = pylonArmHeightSlider2.value / 1000.0f;
                 pylonArm_msg.Collect_rpm[0] = pylonArmCollectRpmSlider1.value;
                 pylonArm_msg.Collect_rpm[1] = pylonArmCollectRpmSlider2.value;
-                pylonArm_msg.Expand[0] = pylonArmExpandSlider1.value;
-                pylonArm_msg.Expand[1] = pylonArmExpandSlider2.value;
+                pylonArm_msg.Expand[0] = pylonArmExpandSlider1.value * Mathf.Deg2Rad;
+                pylonArm_msg.Expand[1] = pylonArmExpandSlider2.value * Mathf.Deg2Rad;
                 pylonArm_pub.Publish(pylonArm_msg);
             }
             yield return new WaitForSeconds(pub_hz);
@@ -297,6 +318,21 @@ public class UnityPublisher : MonoBehaviour
                 Bool field_msg = new Bool();
                 field_msg.Data = isRed;
                 field_pub.Publish(field_msg);
+            }
+            yield return new WaitForSeconds(pub_hz);
+        }
+    }
+
+    IEnumerator publishEArm()
+    {
+        while (true)
+        {
+            if (!is_auto && eArm_pub != null)
+            {
+                EA eArm_msg = new EA();
+                eArm_msg.Expand = eArmExpandSlider.value * Mathf.Deg2Rad;
+                eArm_msg.Get = eArmGetSlider.value;
+                eArm_pub.Publish(eArm_msg);
             }
             yield return new WaitForSeconds(pub_hz);
         }

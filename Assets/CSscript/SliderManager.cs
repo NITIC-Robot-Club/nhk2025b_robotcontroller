@@ -9,8 +9,9 @@ public class SliderManager : MonoBehaviour
     private Slider slider;
     [SerializeField] private TextMeshProUGUI sliderText;
     [SerializeField] private string unit = "/unit_name";
-    [SerializeField] private float calValue = 1.0f;
-    private float meterValue = 0.0f;
+    [SerializeField] private bool isMethodOn = false;
+    [SerializeField, Range(0, 5)] private int decimalDigits = 2;
+
     void Start() {
         slider = GetComponent<Slider>();
         slider.onValueChanged.AddListener(delegate { Method(); });
@@ -18,11 +19,7 @@ public class SliderManager : MonoBehaviour
     }
     
     public void Method() {
-        float roundedValue = Mathf.Round(slider.value * 2) / 2;
-        if (slider.value != roundedValue) {
-            slider.value = roundedValue;
-        }
-        meterValue = roundedValue / calValue;
-        sliderText.text = $"{meterValue:0.0}{unit}";
+        string format = "F" + decimalDigits.ToString();
+        sliderText.text = $"{slider.value.ToString(format)}{unit}";
     }
 }

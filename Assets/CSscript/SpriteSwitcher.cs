@@ -7,7 +7,7 @@ public class SpriteSwitcher : MonoBehaviour
     [SerializeField] private Sprite sprite2;
     [SerializeField] private Image buttonImage;
     [SerializeField] private Button button;
-    private bool isOn = false;
+    private bool isOn = true;
 
     void Start()
     {
