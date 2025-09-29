@@ -91,6 +91,10 @@ public class UnityPublisher : MonoBehaviour
     [SerializeField] private Slider eArmGetSlider;
     [SerializeField] private Slider eArmExpandSlider;
 
+    //
+    [SerializeField] private Button slowToggle;
+    private bool isSlow = false;
+
     void Start()
     {
         TryGetComponent(out ros2Unity);
@@ -117,6 +121,7 @@ public class UnityPublisher : MonoBehaviour
         StartCoroutine(pylonArmRoutine);
         StartCoroutine(fieldRoutine);
         StartCoroutine(eArmRoutine);
+        slowToggle.onClick.AddListener(() => isSlow = !isSlow);
     }
 
     void Update()
@@ -131,10 +136,10 @@ public class UnityPublisher : MonoBehaviour
                 joy_pub = ros2Node.CreatePublisher<TS>("/controller/cmd_vel");
                 status_pub = ros2Node.CreatePublisher<Int32>("/behavior/set_status_num");
                 command_pub = ros2Node.CreatePublisher<Co>("/command");
-                boxArm_pub = ros2Node.CreatePublisher<Ba>("/box_arm/cmd");
-                conveyor_pub = ros2Node.CreatePublisher<Cn>("/conveyor/cmd");
-                pylonArm_pub = ros2Node.CreatePublisher<Pl>("/pylon_arm/cmd");
-                eArm_pub = ros2Node.CreatePublisher<EA>("/e_arm/cmd");
+                boxArm_pub = ros2Node.CreatePublisher<Ba>("/box_arm/controller_cmd");
+                conveyor_pub = ros2Node.CreatePublisher<Cn>("/conveyor/controller_cmd");
+                pylonArm_pub = ros2Node.CreatePublisher<Pl>("/pylon_arm/controller_cmd");
+                eArm_pub = ros2Node.CreatePublisher<EA>("/e_arm/controller_cmd");
                 field_pub = ros2Node.CreatePublisher<Bool>("/is_red");
             }
         }
@@ -153,9 +158,18 @@ public class UnityPublisher : MonoBehaviour
                     Twist = new geometry_msgs.msg.Twist(),
                     Header = new std_msgs.msg.Header()
                 };
-                sendtwist.Twist.Linear.X = XYJoy.Vertical * 2.0f;
-                sendtwist.Twist.Linear.Y = -XYJoy.Horizontal * 2.0f;
-                sendtwist.Twist.Angular.Z = -ZJoy.Horizontal * Mathf.PI;
+                if (isSlow)
+                {
+                    sendtwist.Twist.Linear.X = XYJoy.Vertical * 2.0f / 2.5f;
+                    sendtwist.Twist.Linear.Y = -XYJoy.Horizontal * 2.0f / 2.5f;
+                    sendtwist.Twist.Angular.Z = -ZJoy.Horizontal * Mathf.PI / 2.5f;
+                }
+                else
+                {
+                    sendtwist.Twist.Linear.X = XYJoy.Vertical * 2.0f;
+                    sendtwist.Twist.Linear.Y = -XYJoy.Horizontal * 2.0f;
+                    sendtwist.Twist.Angular.Z = -ZJoy.Horizontal * Mathf.PI;
+                }
                 clock.UpdateROSClockTime(sendtwist.Header.Stamp);
                 sendtwist.Header.Frame_id = "base_link";
                 joy_pub.Publish(sendtwist);

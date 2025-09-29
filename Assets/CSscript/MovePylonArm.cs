@@ -21,7 +21,7 @@ public class MovePylonArm : MonoBehaviour
     private Vector3 rightRotation;
     private float[] expand = new float[2];
     private float[] height = new float[2];
-    private float[] strength = new float[2];
+    private float[] rpm = new float[2];
 
     private UnitySubscriber unitySubscriber;
     private Vector3 leftInitialPosition;
@@ -40,9 +40,11 @@ public class MovePylonArm : MonoBehaviour
         expand[1] = unitySubscriber.pylonArmExpand[1];
         height[0] = unitySubscriber.pylonArmHeight[0];
         height[1] = unitySubscriber.pylonArmHeight[1];
-        leftArmText.SetText($"Left Arm - \n  Height: {height[0]}\n  Strong: {strength[0]}");
-        rightArmText.SetText($"Right Arm - \n  Height: {height[1]}\n  Strong: {strength[1]}");
-        expandText.SetText($"Expand - Left: {expand[0]}, Right: {expand[1]}");
+        rpm[0] = unitySubscriber.pylonArmCollectRPM[0];
+        rpm[1] = unitySubscriber.pylonArmCollectRPM[1];
+        leftArmText.SetText($"Left Arm - \n  Height: {height[0]}\n  RPM: {rpm[0]}");
+        rightArmText.SetText($"Right Arm - \n  Height: {height[1]}\n  RPM: {rpm[1]}");
+        expandText.SetText($"Expand - \n  Left: {expand[0]} \n  Right: {expand[1]}");
 
         float leftAngle = Mathf.Clamp(expand[0], 0f, 180f);
         float rightAngle = -Mathf.Clamp(expand[1], 0f, 180f);

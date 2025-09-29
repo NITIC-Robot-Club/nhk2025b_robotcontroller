@@ -24,7 +24,7 @@ public class MoveBoxArm : MonoBehaviour
     private Vector3 rightRotation;
     private float[] expand = new float[2];
     private float[] height = new float[2];
-    private float[] strength = new float[2];
+    private float[] strong = new float[2];
 
     private UnitySubscriber unitySubscriber;
     private Vector3 leftInitialPosition;
@@ -47,10 +47,10 @@ public class MoveBoxArm : MonoBehaviour
         expand[1] = unitySubscriber.boxArmExpand[1];
         height[0] = unitySubscriber.boxArmHeight[0];
         height[1] = unitySubscriber.boxArmHeight[1];
-        strength[0] = unitySubscriber.boxArmPositionStrong[0];
-        strength[1] = unitySubscriber.boxArmPositionStrong[1];
-        leftText.SetText($"Left Arm - \n  Expand: {expand[0]}\n  Height: {height[0]}\n  Strength: {strength[0]}");
-        rightText.SetText($"Right Arm - \n  Expand: {expand[1]}\n  Height: {height[1]}\n  Strength: {strength[1]}");
+        strong[0] = unitySubscriber.boxArmPositionStrong[0];
+        strong[1] = unitySubscriber.boxArmPositionStrong[1];
+        leftText.SetText($"Left Arm - \n  Expand: {expand[0]}\n  Height: {height[0]}\n  strong: {strong[0]}");
+        rightText.SetText($"Right Arm - \n  Expand: {expand[1]}\n  Height: {height[1]}\n  strong: {strong[1]}");
 
         float leftZ = Mathf.Lerp(90f, 0f, Mathf.InverseLerp(0f, 90f, expand[0]));
         leftBoxArmExpand.transform.localRotation = Quaternion.Euler(0f, 0f, leftZ);
@@ -64,8 +64,8 @@ public class MoveBoxArm : MonoBehaviour
             leftInitialPosition.z
         );
         leftBoxArmStrong.transform.localPosition = new Vector3(
-            -275f - Mathf.Clamp(strength[0], 320f, 520f),
-            leftStrongInitialPosition.y + Mathf.Clamp(2*height[0]*strength[0], minHeight, maxHeight),
+            -275f - Mathf.Clamp(strong[0], 320f, 520f),
+            leftStrongInitialPosition.y + Mathf.Clamp(2*height[0]*strong[0], minHeight, maxHeight),
             leftStrongInitialPosition.z
         );
         rightBoxArmHeight.transform.localPosition = new Vector3(
@@ -74,8 +74,8 @@ public class MoveBoxArm : MonoBehaviour
             rightInitialPosition.z
         );
         rightBoxArmStrong.transform.localPosition = new Vector3(
-            275f + Mathf.Clamp(strength[1], 320f, 520f),
-            rightStrongInitialPosition.y + Mathf.Clamp(2*height[1]*strength[1], minHeight, maxHeight),
+            275f + Mathf.Clamp(strong[1], 320f, 520f),
+            rightStrongInitialPosition.y + Mathf.Clamp(2*height[1]*strong[1], minHeight, maxHeight),
             rightStrongInitialPosition.z
         );
     }

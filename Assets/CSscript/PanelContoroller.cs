@@ -170,6 +170,7 @@ public class PanelContoroller : MonoBehaviour
         pylonArmPanel.SetActive(false);
         chassisPanel.SetActive(false);
         eArmPanel.SetActive(false);
+
     }
 
     void conveyorOn()

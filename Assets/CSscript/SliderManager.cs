@@ -9,8 +9,9 @@ public class SliderManager : MonoBehaviour
     private Slider slider;
     [SerializeField] private TextMeshProUGUI sliderText;
     [SerializeField] private string unit = "/unit_name";
-    [SerializeField] private bool isMethodOn = false;
     [SerializeField, Range(0, 5)] private int decimalDigits = 2;
+
+    private int[] missingCanId = new int[0];
 
     void Start() {
         slider = GetComponent<Slider>();

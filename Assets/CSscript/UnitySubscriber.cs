@@ -18,6 +18,8 @@ using Ba = nhk2025b_msgs.msg.BoxArm;
 using Cn = nhk2025b_msgs.msg.Conveyor;
 using Pl = nhk2025b_msgs.msg.PylonArm;
 using Rs = nhk2025b_msgs.msg.RobotStatus;
+using EA = nhk2025b_msgs.msg.EArm;
+using IMA = std_msgs.msg.Int32MultiArray;
 
 public class UnitySubscriber : MonoBehaviour
 {
@@ -36,6 +38,8 @@ public class UnitySubscriber : MonoBehaviour
     private ISubscription<Cn> conveyor_sub;
     private ISubscription<Pl> pylonarm_sub;
     private ISubscription<Rs> robotstatus_sub;
+    private ISubscription<EA> earm_sub;
+    private ISubscription<IMA> missing_can_id_pub;
 
     private Queue<string> recqueue = new Queue<string>();
 
@@ -141,7 +145,59 @@ public class UnitySubscriber : MonoBehaviour
     private sbyte[] prevOgData = null;
 
     // private ISubscription<Rs> robotstatus_sub;
+    private const float max_voltage = 12.6f;
+    private const float min_voltage = 11.1f;
     public float[] voltage = new float[3];
+    [SerializeField] private CircleGraphManager voltageCircleGraph1;
+    [SerializeField] private CircleGraphManager voltageCircleGraph2;
+    [SerializeField] private CircleGraphManager voltageCircleGraph3;
+    [SerializeField] private UnityEngine.UI.Toggle resetPylonArmHeightToggle1;
+    [SerializeField] private UnityEngine.UI.Toggle resetPylonArmHeightToggle2;
+    [SerializeField] private UnityEngine.UI.Toggle resetPylonArmExpandToggle1;
+    [SerializeField] private UnityEngine.UI.Toggle resetPylonArmExpandToggle2;
+    [SerializeField] private UnityEngine.UI.Toggle resetBoxArmHeightToggle1;
+    [SerializeField] private UnityEngine.UI.Toggle resetBoxArmHeightToggle2;
+    [SerializeField] private UnityEngine.UI.Toggle resetBoxArmStrongToggle1;
+    [SerializeField] private UnityEngine.UI.Toggle resetBoxArmStrongToggle2;
+    [SerializeField] private UnityEngine.UI.Toggle resetBoxArmWeakToggle1;
+    [SerializeField] private UnityEngine.UI.Toggle resetBoxArmWeakToggle2;
+    [SerializeField] private UnityEngine.UI.Toggle resetEArmExpandToggle;
+    [SerializeField] private UnityEngine.UI.Toggle resetEArmGetToggle;
+    private bool[] resetPylonArmHeight = new bool[2];
+    private bool[] resetPylonArmExpand = new bool[2];
+    private bool[] resetBoxArmHeight = new bool[2];
+    private bool[] resetBoxArmStrong = new bool[2];
+    private bool[] resetBoxArmWeak = new bool[2];
+    private bool resetEArmExpand = new bool();
+    private bool resetEArmGet = new bool();
+
+    // E-Arm
+    private float eArmGet;
+    private float eArmExpand;
+
+    // Missing CAN ID
+    private int[] missingCanId = new int[0];
+    [SerializeField] private TMP_Text missingCanIdText;
+
+    // Auto->Manual Panel Transition
+    [SerializeField] private Slider boxArmHeightSlider1;
+    [SerializeField] private Slider boxArmHeightSlider2;
+    [SerializeField] private Slider boxArmStrongSlider1;
+    [SerializeField] private Slider boxArmStrongSlider2;
+    [SerializeField] private Slider boxArmWeakSlider1;
+    [SerializeField] private Slider boxArmWeakSlider2;
+    [SerializeField] private Slider boxArmExpandSlider1;
+    [SerializeField] private Slider boxArmExpandSlider2;
+    [SerializeField] private Slider boxConveyorRpmSlider1;
+    [SerializeField] private Slider boxConveyorRpmSlider2;
+    [SerializeField] private Slider pylonArmHeightSlider1;
+    [SerializeField] private Slider pylonArmHeightSlider2;
+    [SerializeField] private Slider pylonArmCollectRpmSlider1;
+    [SerializeField] private Slider pylonArmCollectRpmSlider2;
+    [SerializeField] private Slider pylonArmExpandSlider1;
+    [SerializeField] private Slider pylonArmExpandSlider2;
+    [SerializeField] private Slider eArmGetSlider;
+    [SerializeField] private Slider eArmExpandSlider;
 
     void Start()
     {
@@ -200,6 +256,8 @@ public class UnitySubscriber : MonoBehaviour
                 conveyor_sub = ros2Node.CreateSubscription<Cn>("/conveyor/result", conveyorCallback);
                 pylonarm_sub = ros2Node.CreateSubscription<Pl>("/pylon_arm/result", pylonarmCallback);
                 robotstatus_sub = ros2Node.CreateSubscription<Rs>("/robot_status", robotstatusCallback);
+                earm_sub = ros2Node.CreateSubscription<EA>("/e_arm/result", earmCallback);
+                missing_can_id_pub = ros2Node.CreateSubscription<IMA>("/missing_can_id", missingCanIdCallback);
             }
         }
 
@@ -356,8 +414,8 @@ public class UnitySubscriber : MonoBehaviour
         if (stateChanged)
         {
             prevStateSize = stateSize;
-            Array.Copy(stateID, prevStateID, stateSize);
-            Array.Copy(stateName, prevStateName, stateSize);
+            Array.Copy(stateID, prevStateID, stateSize);      // int[] → int[]
+            Array.Copy(stateName, prevStateName, stateSize);  // string[] → string[]
         }
 
         //Visualize Box Arm
@@ -368,6 +426,17 @@ public class UnitySubscriber : MonoBehaviour
 
         //Visualize Conveyor
         conveyorRPMText.SetText($"RPM1: {conveyorRPM[0].ToString("F2")}rpm\nRPM2: {conveyorRPM[1].ToString("F2")}rpm");
+
+        //Visualize Missing CAN ID (16進数表示)
+        if (missingCanIdText != null && missingCanId != null && missingCanId.Length > 0)
+        {
+            string hexStr = string.Join(", ", missingCanId.Select(id => $"0x{id:X}"));
+            missingCanIdText.SetText("Missing CAN ID: " + hexStr);
+        }
+        else if (missingCanIdText != null)
+        {
+            missingCanIdText.SetText("Missing CAN ID: None");
+        }
     }
 
     void mappingCallback(Og msg)
@@ -554,5 +623,65 @@ public class UnitySubscriber : MonoBehaviour
         voltage[0] = msg.Voltage[0];
         voltage[1] = msg.Voltage[1];
         voltage[2] = msg.Voltage[2];
+        resetPylonArmHeight[0] = msg.Reset_pylon_height[0];
+        resetPylonArmHeight[1] = msg.Reset_pylon_height[1];
+        resetPylonArmExpand[0] = msg.Reset_pylon_expand[0];
+        resetPylonArmExpand[1] = msg.Reset_pylon_expand[1];
+        resetBoxArmHeight[0] = msg.Reset_box_arm_height[0];
+        resetBoxArmHeight[1] = msg.Reset_box_arm_height[1];
+        resetBoxArmStrong[0] = msg.Reset_box_arm_strong[0];
+        resetBoxArmStrong[1] = msg.Reset_box_arm_strong[1];
+        resetBoxArmWeak[0] = msg.Reset_box_arm_weak[0];
+        resetBoxArmWeak[1] = msg.Reset_box_arm_weak[1];
+        resetEArmExpand = msg.Reset_e_arm_expand;
+        resetEArmGet = msg.Reset_e_arm_get;
+        voltageCircleGraph1.UpdateCircleGraph(voltage[0], (voltage[0] - min_voltage) / (max_voltage - min_voltage));
+        voltageCircleGraph2.UpdateCircleGraph(voltage[1], (voltage[1] - min_voltage) / (max_voltage - min_voltage));
+        voltageCircleGraph3.UpdateCircleGraph(voltage[2], (voltage[2] - min_voltage) / (max_voltage - min_voltage));
+        resetPylonArmHeightToggle1.isOn = resetPylonArmHeight[0];
+        resetPylonArmHeightToggle2.isOn = resetPylonArmHeight[1];
+        resetPylonArmExpandToggle1.isOn = resetPylonArmExpand[0];
+        resetPylonArmExpandToggle2.isOn = resetPylonArmExpand[1];
+        resetBoxArmHeightToggle1.isOn = resetBoxArmHeight[0];
+        resetBoxArmHeightToggle2.isOn = resetBoxArmHeight[1];
+        resetBoxArmStrongToggle1.isOn = resetBoxArmStrong[0];
+        resetBoxArmStrongToggle2.isOn = resetBoxArmStrong[1];
+        resetBoxArmWeakToggle1.isOn = resetBoxArmWeak[0];
+        resetBoxArmWeakToggle2.isOn = resetBoxArmWeak[1];
+        resetEArmExpandToggle.isOn = resetEArmExpand;
+        resetEArmGetToggle.isOn = resetEArmGet;
+    }
+
+    void earmCallback(EA msg)
+    {
+        eArmGet = msg.Get;
+        eArmExpand = msg.Expand;
+    }
+
+    void missingCanIdCallback(IMA msg)
+    {
+        missingCanId = (int[])msg.Data.Clone();
+    }
+
+    public void panelTransition()
+    {
+        boxArmHeightSlider1.value = 0.1f;
+        boxArmHeightSlider2.value = 0.1f;
+        boxArmStrongSlider1.value = 0f;
+        boxArmStrongSlider2.value = 0f;
+        boxArmWeakSlider1.value = 0.6f;
+        boxArmWeakSlider2.value = 0.6f;
+        boxArmExpandSlider1.value = 90.0f;
+        boxArmExpandSlider2.value = 90.0f;
+        boxConveyorRpmSlider1.value = conveyorRPM[0];
+        boxConveyorRpmSlider2.value = conveyorRPM[1];
+        pylonArmHeightSlider1.value = pylonArmHeight[0];
+        pylonArmHeightSlider2.value = pylonArmHeight[1];
+        pylonArmCollectRpmSlider1.value = pylonArmCollectRPM[0];
+        pylonArmCollectRpmSlider2.value = pylonArmCollectRPM[1];
+        pylonArmExpandSlider1.value = pylonArmExpand[0];
+        pylonArmExpandSlider2.value = pylonArmExpand[1];
+        eArmGetSlider.value = eArmGet;
+        eArmExpandSlider.value = eArmExpand;
     }
 }
