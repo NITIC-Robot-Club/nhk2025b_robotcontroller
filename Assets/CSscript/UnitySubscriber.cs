@@ -124,30 +124,30 @@ public class UnitySubscriber : MonoBehaviour
     private Vector2 initialPosition = new Vector2(0, 725);
 
     //Visualize BoxArm State
-    public float[] boxArmExpand = new float[2];
-    public float[] boxArmHeight = new float[2];
-    public float[] boxArmPositionStrong = new float[2];
-    public float[] boxArmPositionWeak = new float[2];
-    [SerializeField] private TMP_Text boxArmExpandText;
-    [SerializeField] private TMP_Text boxArmHeightText;
-    [SerializeField] private TMP_Text boxArmPositionStrongText;
-    [SerializeField] private TMP_Text boxArmPositionWeakText;
+    [System.NonSerialized] public float[] boxArmExpand = new float[2];
+    [System.NonSerialized] public float[] boxArmHeight = new float[2];
+    [System.NonSerialized] public float[] boxArmPositionStrong = new float[2];
+    [System.NonSerialized] public float[] boxArmPositionWeak = new float[2];
+    // [SerializeField] private TMP_Text boxArmExpandText;
+    // [SerializeField] private TMP_Text boxArmHeightText;
+    // [SerializeField] private TMP_Text boxArmPositionStrongText;
+    // [SerializeField] private TMP_Text boxArmPositionWeakText;
 
     //Visualize Conveyor State
     private float[] conveyorRPM = new float[2]; 
     [SerializeField] private TMP_Text conveyorRPMText;
 
     //Visualize PylonArm State
-    public float[] pylonArmExpand = new float[2];
-    public float[] pylonArmHeight = new float[2];
-    public float[] pylonArmCollectRPM = new float[2];
+    [System.NonSerialized] public float[] pylonArmExpand = new float[2];
+    [System.NonSerialized] public float[] pylonArmHeight = new float[2];
+    [System.NonSerialized] public float[] pylonArmCollectRPM = new float[2];
 
     private sbyte[] prevOgData = null;
 
     // private ISubscription<Rs> robotstatus_sub;
     private const float max_voltage = 12.6f;
     private const float min_voltage = 11.1f;
-    public float[] voltage = new float[3];
+    [System.NonSerialized] public float[] voltage = new float[3];
     [SerializeField] private CircleGraphManager voltageCircleGraph1;
     [SerializeField] private CircleGraphManager voltageCircleGraph2;
     [SerializeField] private CircleGraphManager voltageCircleGraph3;
@@ -172,8 +172,9 @@ public class UnitySubscriber : MonoBehaviour
     private bool resetEArmGet = new bool();
 
     // E-Arm
-    private float eArmGet;
-    private float eArmExpand;
+    public float eArmGet;
+    public float eArmExpand;
+    [SerializeField] private TMP_Text eArmText;
 
     // Missing CAN ID
     private int[] missingCanId = new int[0];
@@ -235,6 +236,9 @@ public class UnitySubscriber : MonoBehaviour
             pointRectTransforms[i].anchorMin = new Vector2(1, 1);
             pointRectTransforms[i].anchorMax = new Vector2(1, 1);
         }
+
+        float expand = Mathf.Rad2Deg * eArmExpand;
+        eArmText.SetText($"E Arm\n  Get: {eArmGet.ToString("F2")}mm\n  Expand: {expand.ToString("F2")}°");
     }
 
     void Update()
@@ -419,10 +423,10 @@ public class UnitySubscriber : MonoBehaviour
         }
 
         //Visualize Box Arm
-        boxArmExpandText.SetText($"Expand1: {boxArmExpand[0].ToString("F2")}°\nExpand2: {boxArmExpand[1].ToString("F2")}°");
-        boxArmHeightText.SetText($"Height1: {boxArmHeight[0].ToString("F2")}mm\nHeight2: {boxArmHeight[1].ToString("F2")}mm");
-        boxArmPositionStrongText.SetText($"Position1: {boxArmPositionStrong[0].ToString("F2")}mm\nPosition2: {boxArmPositionStrong[1].ToString("F2")}mm");
-        boxArmPositionWeakText.SetText($"Position1: {boxArmPositionWeak[0].ToString("F2")}mm\nPosition2: {boxArmPositionWeak[1].ToString("F2")}mm");
+        // boxArmExpandText.SetText($"Expand1: {boxArmExpand[0].ToString("F2")}°\nExpand2: {boxArmExpand[1].ToString("F2")}°");
+        // boxArmHeightText.SetText($"Height1: {boxArmHeight[0].ToString("F2")}mm\nHeight2: {boxArmHeight[1].ToString("F2")}mm");
+        // boxArmPositionStrongText.SetText($"Position1: {boxArmPositionStrong[0].ToString("F2")}mm\nPosition2: {boxArmPositionStrong[1].ToString("F2")}mm");
+        // boxArmPositionWeakText.SetText($"Position1: {boxArmPositionWeak[0].ToString("F2")}mm\nPosition2: {boxArmPositionWeak[1].ToString("F2")}mm");
 
         //Visualize Conveyor
         conveyorRPMText.SetText($"RPM1: {conveyorRPM[0].ToString("F2")}rpm\nRPM2: {conveyorRPM[1].ToString("F2")}rpm");
@@ -656,6 +660,8 @@ public class UnitySubscriber : MonoBehaviour
     {
         eArmGet = msg.Get;
         eArmExpand = msg.Expand;
+        float expand = Mathf.Rad2Deg * eArmExpand;
+        eArmText.SetText($"E Arm\n  Get: {eArmGet.ToString("F2")}mm\n  Expand: {expand.ToString("F2")}°");
     }
 
     void missingCanIdCallback(IMA msg)

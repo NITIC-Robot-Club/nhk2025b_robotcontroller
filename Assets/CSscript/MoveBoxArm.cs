@@ -25,6 +25,7 @@ public class MoveBoxArm : MonoBehaviour
     private float[] expand = new float[2];
     private float[] height = new float[2];
     private float[] strong = new float[2];
+    private float[] weak = new float[2];
 
     private UnitySubscriber unitySubscriber;
     private Vector3 leftInitialPosition;
@@ -49,8 +50,10 @@ public class MoveBoxArm : MonoBehaviour
         height[1] = unitySubscriber.boxArmHeight[1];
         strong[0] = unitySubscriber.boxArmPositionStrong[0];
         strong[1] = unitySubscriber.boxArmPositionStrong[1];
-        leftText.SetText($"Left Arm - \n  Expand: {expand[0]}\n  Height: {height[0]}\n  strong: {strong[0]}");
-        rightText.SetText($"Right Arm - \n  Expand: {expand[1]}\n  Height: {height[1]}\n  strong: {strong[1]}");
+        weak[0] = unitySubscriber.boxArmPositionWeak[0];
+        weak[1] = unitySubscriber.boxArmPositionWeak[1];
+        leftText.SetText($"Left Arm - \n  Expand: {expand[0]}\n  Height: {height[0]}\n  Strong: {strong[0]}\n  Weak: {weak[0]}");
+        rightText.SetText($"Right Arm - \n  Expand: {expand[1]}\n  Height: {height[1]}\n  Strong: {strong[1]}\n  Weak: {weak[1]}");
 
         float leftZ = Mathf.Lerp(90f, 0f, Mathf.InverseLerp(0f, 90f, expand[0]));
         leftBoxArmExpand.transform.localRotation = Quaternion.Euler(0f, 0f, leftZ);

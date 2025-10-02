@@ -41,6 +41,8 @@ public class PanelContoroller : MonoBehaviour
 
     private bool isInfoActive = false;
 
+    [SerializeField] private UnitySubscriber sub;
+
     void Start() 
     {
         manualSwitcherButton.onClick.AddListener(manualSwitcherOn);
@@ -148,6 +150,7 @@ public class PanelContoroller : MonoBehaviour
         if (manualSwitcherState)
         {
             chassisOn();
+            sub.panelTransition();
         }
         else
         {
