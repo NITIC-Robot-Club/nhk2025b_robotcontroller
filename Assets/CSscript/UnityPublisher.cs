@@ -95,32 +95,52 @@ public class UnityPublisher : MonoBehaviour
     [SerializeField] private Button slowToggle;
     private bool isSlow = false;
 
+    // Publish Chassis Arrow Value
+    [SerializeField] private Button forwardButton;
+    [SerializeField] private Button backwardButton;
+    [SerializeField] private Button leftButton;
+    [SerializeField] private Button rightButton;
+    [NonSerialized] public float xyJoyVerticalValue = 0.0f;
+    [NonSerialized] public float xyJoyHorizontalValue = 0.0f;
+
+    private bool isForwardPressed = false;
+    private bool isBackwardPressed = false;
+    private bool isLeftPressed = false;
+    private bool isRightPressed = false;
+    private IEnumerator arrowButtonRoutine;
+
     void Start()
     {
         TryGetComponent(out ros2Unity);
         joy_routine = JoyAsync();
         statusRoutine = publishStatus();
         commandRoutine = publishCommandReady();
-        // publishButtonCommandRoutine = publishButtonCommand();
         boxArmRoutine = publishBoxArm();
         conveyorRoutine = publishConveyor();
         pylonArmRoutine = publishPylonArm();
         eArmRoutine = publishEArm();
+        arrowButtonRoutine = publishArrowButtonInput();
         automateReadyButton.onClick.AddListener(() => automateReadyButtonClicked());
         pauseButton.onClick.AddListener( () => pauseButtonClicked());
         continueButton.onClick.AddListener( () => continueButtonClicked());
         resetButton.onClick.AddListener( () => resetButtonClicked());
         fieldRoutine = publishFieldStatus();
 
+        // 長押し検出用のEventTriggerを追加
+        AddButtonHoldListener(forwardButton, () => isForwardPressed = true, () => isForwardPressed = false);
+        AddButtonHoldListener(backwardButton, () => isBackwardPressed = true, () => isBackwardPressed = false);
+        AddButtonHoldListener(leftButton, () => isLeftPressed = true, () => isLeftPressed = false);
+        AddButtonHoldListener(rightButton, () => isRightPressed = true, () => isRightPressed = false);
+
         StartCoroutine(joy_routine);
         StartCoroutine(statusRoutine);
         StartCoroutine(commandRoutine);
-        // StartCoroutine(publishButtonCommandRoutine);
         StartCoroutine(boxArmRoutine);
         StartCoroutine(conveyorRoutine);
         StartCoroutine(pylonArmRoutine);
         StartCoroutine(fieldRoutine);
         StartCoroutine(eArmRoutine);
+        StartCoroutine(arrowButtonRoutine);
         slowToggle.onClick.AddListener(() => isSlow = !isSlow);
     }
 
@@ -160,9 +180,9 @@ public class UnityPublisher : MonoBehaviour
                 };
                 if (isSlow)
                 {
-                    sendtwist.Twist.Linear.X = XYJoy.Vertical * 2.0f / 2.5f;
-                    sendtwist.Twist.Linear.Y = -XYJoy.Horizontal * 2.0f / 2.5f;
-                    sendtwist.Twist.Angular.Z = -ZJoy.Horizontal * Mathf.PI / 2.5f;
+                    sendtwist.Twist.Linear.X = XYJoy.Vertical;
+                    sendtwist.Twist.Linear.Y = -XYJoy.Horizontal;
+                    sendtwist.Twist.Angular.Z = -ZJoy.Horizontal * Mathf.PI / 1.5f;
                 }
                 else
                 {
@@ -175,6 +195,51 @@ public class UnityPublisher : MonoBehaviour
                 joy_pub.Publish(sendtwist);
             }
             yield return new WaitForSeconds(pub_hz);
+        }
+    }
+
+    private void onForwardButtonClick()
+    {
+        xyJoyVerticalValue = 1.0f;
+        publishAccurateTwist();
+    }
+
+    private void onBackButtonClick()
+    {
+        xyJoyVerticalValue = -1.0f;
+        publishAccurateTwist();
+    }
+
+    private void onLeftButtonClick()
+    {
+        xyJoyHorizontalValue = -1.0f;
+        publishAccurateTwist();
+    }
+
+    private void onRightButtonClick()
+    {
+        xyJoyHorizontalValue = 1.0f;
+        publishAccurateTwist();
+    }
+
+    private void publishAccurateTwist()
+    {
+        if (xyJoyVerticalValue != 0.0f || xyJoyHorizontalValue != 0.0f)
+        {
+            ROS2Clock clock = new ROS2Clock();
+            TS sendtwist = new TS
+            {
+                Twist = new geometry_msgs.msg.Twist(),
+                Header = new std_msgs.msg.Header()
+            };
+            sendtwist.Twist.Linear.X = xyJoyVerticalValue;
+            sendtwist.Twist.Linear.Y = -xyJoyHorizontalValue;
+            sendtwist.Twist.Angular.Z = 0.0f;
+            clock.UpdateROSClockTime(sendtwist.Header.Stamp);
+            sendtwist.Header.Frame_id = "base_link";
+            joy_pub.Publish(sendtwist);
+            xyJoyVerticalValue = 0.0f;
+            xyJoyHorizontalValue = 0.0f;
         }
     }
 
@@ -347,6 +412,58 @@ public class UnityPublisher : MonoBehaviour
                 eArm_msg.Expand = eArmExpandSlider.value * Mathf.Deg2Rad;
                 eArm_msg.Get = eArmGetSlider.value;
                 eArm_pub.Publish(eArm_msg);
+            }
+            yield return new WaitForSeconds(pub_hz);
+        }
+    }
+
+    private void AddButtonHoldListener(Button button, System.Action onPressed, System.Action onReleased)
+    {
+        EventTrigger trigger = button.gameObject.GetComponent<EventTrigger>();
+        if (trigger == null)
+        {
+            trigger = button.gameObject.AddComponent<EventTrigger>();
+        }
+
+        EventTrigger.Entry entryDown = new EventTrigger.Entry();
+        entryDown.eventID = EventTriggerType.PointerDown;
+        entryDown.callback.AddListener((data) => { onPressed?.Invoke(); });
+        trigger.triggers.Add(entryDown);
+
+        EventTrigger.Entry entryUp = new EventTrigger.Entry();
+        entryUp.eventID = EventTriggerType.PointerUp;
+        entryUp.callback.AddListener((data) => { onReleased?.Invoke(); });
+        trigger.triggers.Add(entryUp);
+    }
+
+    IEnumerator publishArrowButtonInput()
+    {
+        while (true)
+        {
+            if (!is_auto && joy_pub != null && (isForwardPressed || isBackwardPressed || isLeftPressed || isRightPressed))
+            {
+                ROS2Clock clock = new ROS2Clock();
+                TS sendtwist = new TS
+                {
+                    Twist = new geometry_msgs.msg.Twist(),
+                    Header = new std_msgs.msg.Header()
+                };
+
+                float verticalValue = 0f;
+                float horizontalValue = 0f;
+
+                if (isForwardPressed) verticalValue += 1.0f;
+                if (isBackwardPressed) verticalValue -= 1.0f;
+                if (isLeftPressed) horizontalValue += 1.0f;
+                if (isRightPressed) horizontalValue -= 1.0f;
+                verticalValue = Mathf.Clamp(verticalValue, -1.0f, 1.0f);
+                horizontalValue = Mathf.Clamp(horizontalValue, -1.0f, 1.0f);
+                sendtwist.Twist.Linear.X = verticalValue;
+                sendtwist.Twist.Linear.Y = horizontalValue;
+                sendtwist.Twist.Angular.Z = 0.0f;
+                clock.UpdateROSClockTime(sendtwist.Header.Stamp);
+                sendtwist.Header.Frame_id = "base_link";
+                joy_pub.Publish(sendtwist);
             }
             yield return new WaitForSeconds(pub_hz);
         }
