@@ -34,6 +34,7 @@ public class UnitySubscriber : MonoBehaviour
     private ISubscription<Sw> result_sub;
     private ISubscription<Sw> cmd_sub;
     private ISubscription<Sa> state_sub;
+    private ISubscription<nhk2025b_msgs.msg.State> now_state_sub;
     private ISubscription<Ba> boxarm_sub;
     private ISubscription<Cn> conveyor_sub;
     private ISubscription<Pl> pylonarm_sub;
@@ -121,7 +122,9 @@ public class UnitySubscriber : MonoBehaviour
     private string[] prevStateName = new string[50];
     private int prevStateSize = 0;
     private bool stateChanged = false;
-    private Vector2 initialPosition = new Vector2(0, -1350);
+    private Vector2 initialPosition = new Vector2(0, 1350);
+    private string nowStateName = "";
+    private int nowStateId = 0;
 
     //Visualize BoxArm State
     [System.NonSerialized] public float[] boxArmExpand = new float[2];
@@ -260,6 +263,7 @@ public class UnitySubscriber : MonoBehaviour
                 result_sub = ros2Node.CreateSubscription<Sw>("/swerve/result", resultCallback);
                 cmd_sub = ros2Node.CreateSubscription<Sw>("/visualization/swerve", cmdCallback);
                 state_sub = ros2Node.CreateSubscription<Sa>("/behavior/avaiable_state_array", stateCallback);
+                now_state_sub = ros2Node.CreateSubscription<nhk2025b_msgs.msg.State>("/behavior/state_now", nowStateCallback);
                 boxarm_sub = ros2Node.CreateSubscription<Ba>("/box_arm/result", boxarmCallback);
                 conveyor_sub = ros2Node.CreateSubscription<Cn>("/conveyor/result", conveyorCallback);
                 pylonarm_sub = ros2Node.CreateSubscription<Pl>("/pylon_arm/result", pylonarmCallback);
@@ -330,39 +334,40 @@ public class UnitySubscriber : MonoBehaviour
 
         //Visualize Robot State
         currentStateText.text = currentState;
-        if (stateChanged && stateSize > 0)
+    if (stateChanged && stateSize > 0)
+    {
+        foreach (Transform child in buttonParent.transform)
         {
-            foreach (Transform child in buttonParent.transform)
-            {
-                Destroy(child.gameObject);
-            }
-            for (int i = 0; i < stateSize; i++)
-            {
-                GameObject button;
-                if (currentState == stateName[i])
-                {
-                    button = Instantiate(buttonPrefabBlue);
-                    var image = button.GetComponent<Image>();
-                    if (image != null) image.color = Color.blue;
-                }
-                else
-                {
-                    button = Instantiate(buttonPrefabYellow);
-                    var image = button.GetComponent<Image>();
-                    if (image != null) image.color = Color.yellow;
-                }
-                button.transform.SetParent(buttonParent.transform, false);
-                button.transform.localScale = Vector3.one;
-                button.GetComponent<RectTransform>().anchoredPosition = initialPosition + new Vector2(0, -i * 125);
-                button.GetComponentInChildren<TMP_Text>().text = stateID[i] + ": " + stateName[i];
-                int idx = i;
-                button.GetComponent<Button>().onClick.AddListener(() => {
-                    Debug.Log(stateID[idx] + ": " + stateName[idx]);
-                    sendStatus(stateID[idx]);
-                });
-            }
-            stateChanged = false;
+            Destroy(child.gameObject);
         }
+        for (int i = 0; i < stateSize; i++)
+        {
+            GameObject button;
+            if (nowStateId == stateID[i] && nowStateName == stateName[i])
+            {
+                button = Instantiate(buttonPrefabBlue);
+            }
+            else
+            {
+                button = Instantiate(buttonPrefabYellow);
+            }
+            button.transform.SetParent(buttonParent.transform, false);
+            button.transform.localScale = Vector3.one;
+            button.GetComponent<RectTransform>().anchoredPosition = initialPosition + new Vector2(0, -i * 125);
+            button.GetComponentInChildren<TMP_Text>().text = stateID[i] + ": " + stateName[i];
+            int idx = i;
+            button.GetComponent<Button>().onClick.AddListener(() => {
+                Debug.Log(stateID[idx] + ": " + stateName[idx]);
+                sendStatus(stateID[idx]);
+            });
+        }
+        
+        prevStateSize = stateSize;
+        Array.Copy(stateID, prevStateID, stateSize);
+        Array.Copy(stateName, prevStateName, stateSize);
+        
+        stateChanged = false;
+    }
 
         if (stateSize != prevStateSize || !stateID.SequenceEqual(prevStateID) || !stateName.SequenceEqual(prevStateName))
         {
@@ -536,32 +541,67 @@ public class UnitySubscriber : MonoBehaviour
 
     void stateCallback(Sa msg)
     {
-        stateChanged = false;
-        stateSize = msg.State.Length;
-        currentState = msg.Name;
-        if (stateSize != prevStateSize)
+        int newStateSize = msg.State.Length;
+        string newCurrentState = msg.Name;
+        int[] newStateID = new int[50];
+        string[] newStateName = new string[50];
+        
+        for (int i = 0; i < newStateSize; i++)
         {
-            stateChanged = true;
+            newStateID[i] = msg.State[i].Id;
+            newStateName[i] = msg.State[i].Name;
         }
-        else
+
+        CustomMainThreadDispatcher.Instance().Enqueue(() =>
         {
-            for (int i = 0; i < stateSize; i++)
+            bool hasChanged = false;
+            if (newStateSize != prevStateSize)
             {
-                if (stateID[i] != msg.State[i].Id || stateName[i] != msg.State[i].Name)
+                hasChanged = true;
+            }
+            else
+            {
+                for (int i = 0; i < newStateSize; i++)
                 {
-                    stateChanged = true;
-                    break;
+                    if (newStateID[i] != prevStateID[i] || newStateName[i] != prevStateName[i])
+                    {
+                        hasChanged = true;
+                        break;
+                    }
                 }
             }
-        }
-        for (int i = 0; i < stateSize; i++)
+            if (newCurrentState != currentState)
+            {
+                hasChanged = true;
+            }
+            if (hasChanged)
+            {
+                stateSize = newStateSize;
+                currentState = newCurrentState;
+                for (int i = 0; i < stateSize; i++)
+                {
+                    stateID[i] = newStateID[i];
+                    stateName[i] = newStateName[i];
+                }
+                stateChanged = true;
+            }
+        });
+    }
+
+    void nowStateCallback(nhk2025b_msgs.msg.State msg)
+    {
+        string newName = msg.Name;
+        int newId = msg.Id;
+        
+        CustomMainThreadDispatcher.Instance().Enqueue(() =>
         {
-            stateID[i] = msg.State[i].Id;
-            stateName[i] = msg.State[i].Name;
-        }
-        prevStateSize = stateSize;
-        Array.Copy(stateID, prevStateID, stateSize);
-        Array.Copy(stateName, prevStateName, stateSize);
+            if (nowStateName != newName || nowStateId != newId)
+            {
+                nowStateName = newName;
+                nowStateId = newId;
+                stateChanged = true;
+            }
+        });
     }
 
     void sendStatus(int status)
