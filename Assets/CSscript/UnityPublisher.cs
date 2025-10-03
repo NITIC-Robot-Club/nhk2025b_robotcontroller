@@ -198,51 +198,6 @@ public class UnityPublisher : MonoBehaviour
         }
     }
 
-    private void onForwardButtonClick()
-    {
-        xyJoyVerticalValue = 1.0f;
-        publishAccurateTwist();
-    }
-
-    private void onBackButtonClick()
-    {
-        xyJoyVerticalValue = -1.0f;
-        publishAccurateTwist();
-    }
-
-    private void onLeftButtonClick()
-    {
-        xyJoyHorizontalValue = -1.0f;
-        publishAccurateTwist();
-    }
-
-    private void onRightButtonClick()
-    {
-        xyJoyHorizontalValue = 1.0f;
-        publishAccurateTwist();
-    }
-
-    private void publishAccurateTwist()
-    {
-        if (xyJoyVerticalValue != 0.0f || xyJoyHorizontalValue != 0.0f)
-        {
-            ROS2Clock clock = new ROS2Clock();
-            TS sendtwist = new TS
-            {
-                Twist = new geometry_msgs.msg.Twist(),
-                Header = new std_msgs.msg.Header()
-            };
-            sendtwist.Twist.Linear.X = xyJoyVerticalValue;
-            sendtwist.Twist.Linear.Y = -xyJoyHorizontalValue;
-            sendtwist.Twist.Angular.Z = 0.0f;
-            clock.UpdateROSClockTime(sendtwist.Header.Stamp);
-            sendtwist.Header.Frame_id = "base_link";
-            joy_pub.Publish(sendtwist);
-            xyJoyVerticalValue = 0.0f;
-            xyJoyHorizontalValue = 0.0f;
-        }
-    }
-
     IEnumerator publishStatus()
     {
         while (true)
@@ -440,30 +395,47 @@ public class UnityPublisher : MonoBehaviour
     {
         while (true)
         {
-            if (!is_auto && joy_pub != null && (isForwardPressed || isBackwardPressed || isLeftPressed || isRightPressed))
+            if (!is_auto && joy_pub != null)
             {
-                ROS2Clock clock = new ROS2Clock();
-                TS sendtwist = new TS
-                {
-                    Twist = new geometry_msgs.msg.Twist(),
-                    Header = new std_msgs.msg.Header()
-                };
-
                 float verticalValue = 0f;
                 float horizontalValue = 0f;
 
-                if (isForwardPressed) verticalValue += 1.0f;
-                if (isBackwardPressed) verticalValue -= 1.0f;
-                if (isLeftPressed) horizontalValue += 1.0f;
-                if (isRightPressed) horizontalValue -= 1.0f;
-                verticalValue = Mathf.Clamp(verticalValue, -1.0f, 1.0f);
-                horizontalValue = Mathf.Clamp(horizontalValue, -1.0f, 1.0f);
-                sendtwist.Twist.Linear.X = verticalValue;
-                sendtwist.Twist.Linear.Y = horizontalValue;
-                sendtwist.Twist.Angular.Z = 0.0f;
-                clock.UpdateROSClockTime(sendtwist.Header.Stamp);
-                sendtwist.Header.Frame_id = "base_link";
-                joy_pub.Publish(sendtwist);
+                if (isForwardPressed) verticalValue += 0.5f;
+                if (isBackwardPressed) verticalValue -= 0.5f;
+                if (isLeftPressed) horizontalValue += 0.5f;
+                if (isRightPressed) horizontalValue -= 0.5f;
+
+                if (controllerActions != null)
+                {
+                    var controller = controllerActions.GetComponent<ControllerActions>();
+                    if (controller != null)
+                    {
+                        if (controller.GetDpadUp()) verticalValue += 0.5f;
+                        if (controller.GetDpadDown()) verticalValue -= 0.5f;
+                        if (controller.GetDpadLeft()) horizontalValue += 0.5f;
+                        if (controller.GetDpadRight()) horizontalValue -= 0.5f;
+                    }
+                }
+                if (Mathf.Abs(verticalValue) > 0.01f || Mathf.Abs(horizontalValue) > 0.01f)
+                {
+                    
+                    ROS2Clock clock = new ROS2Clock();
+                    TS sendtwist = new TS
+                    {
+                        Twist = new geometry_msgs.msg.Twist(),
+                        Header = new std_msgs.msg.Header()
+                    };
+
+                    sendtwist.Twist.Linear.X = verticalValue;
+                    sendtwist.Twist.Linear.Y = horizontalValue;
+                    sendtwist.Twist.Angular.Z = 0.0f;
+
+                    clock.UpdateROSClockTime(sendtwist.Header.Stamp);
+                    sendtwist.Header.Frame_id = "base_link";
+                    joy_pub.Publish(sendtwist);
+                    verticalValue = 0f;
+                    horizontalValue = 0f;
+                }
             }
             yield return new WaitForSeconds(pub_hz);
         }

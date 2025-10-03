@@ -22,6 +22,10 @@ public class ControllerActions : MonoBehaviour
     private Vector2 _rightdsjoy;
     private float _r2float;
     private bool connect;
+    private bool _upPressed = false;
+    private bool _downPressed = false;
+    private bool _leftPressed = false;
+    private bool _rightPressed = false;
     public FixedJoystick Rightjoy;
     public FixedJoystick Leftjoy;
     private void Awake()
@@ -40,10 +44,18 @@ public class ControllerActions : MonoBehaviour
         _gameInputs.Player.Batu.performed += OnBatu;
         _gameInputs.Player.Sikaku.performed += OnSikaku;
         _gameInputs.Player.Sankaku.performed += OnSankaku;
+        _gameInputs.Player.Up.started += OnUp;
         _gameInputs.Player.Up.performed += OnUp;
+        _gameInputs.Player.Up.canceled += OnUp;
+        _gameInputs.Player.Down.started += OnDown;
         _gameInputs.Player.Down.performed += OnDown;
+        _gameInputs.Player.Down.canceled += OnDown;
+        _gameInputs.Player.Left.started += OnLeft;
         _gameInputs.Player.Left.performed += OnLeft;
+        _gameInputs.Player.Left.canceled += OnLeft;
+        _gameInputs.Player.Right.started += OnRight;
         _gameInputs.Player.Right.performed += OnRight;
+        _gameInputs.Player.Right.canceled += OnRight;
         _gameInputs.Player.L1.performed += OnL1;
         _gameInputs.Player.L2.performed += OnL2;
         _gameInputs.Player.R1.performed += OnR1;
@@ -109,10 +121,29 @@ public class ControllerActions : MonoBehaviour
     private void OnBatu(InputAction.CallbackContext context){Osu(ButtonList.Batu);}
     private void OnSikaku(InputAction.CallbackContext context){Osu(ButtonList.Sikaku);}
     private void OnSankaku(InputAction.CallbackContext context){Osu(ButtonList.Sankaku);}
-    private void OnUp(InputAction.CallbackContext context){Osu(ButtonList.Up);}
-    private void OnDown(InputAction.CallbackContext context){Osu(ButtonList.Down);}
-    private void OnLeft(InputAction.CallbackContext context){Osu(ButtonList.Left);}
-    private void OnRight(InputAction.CallbackContext context){Osu(ButtonList.Right);}
+    private void OnUp(InputAction.CallbackContext context)
+    {
+        _upPressed = context.ReadValueAsButton();
+        if (context.performed) Osu(ButtonList.Up);
+    }
+
+    private void OnDown(InputAction.CallbackContext context)
+    {
+        _downPressed = context.ReadValueAsButton();
+        if (context.performed) Osu(ButtonList.Down);
+    }
+
+    private void OnLeft(InputAction.CallbackContext context)
+    {
+        _leftPressed = context.ReadValueAsButton();
+        if (context.performed) Osu(ButtonList.Left);
+    }
+
+    private void OnRight(InputAction.CallbackContext context)
+    {
+        _rightPressed = context.ReadValueAsButton();
+        if (context.performed) Osu(ButtonList.Right);
+    }
     private void OnL1(InputAction.CallbackContext context){Osu(ButtonList.L1);}
     private void OnL2(InputAction.CallbackContext context){Osu(ButtonList.L2);}
     private void OnR1(InputAction.CallbackContext context){Osu(ButtonList.R1);}
@@ -148,6 +179,25 @@ public class ControllerActions : MonoBehaviour
     public float Getr2float()
     {
         return _r2float;
+    }
+    public bool GetDpadUp()
+    {
+        return _upPressed;
+    }
+
+    public bool GetDpadDown()
+    {
+        return _downPressed;
+    }
+
+    public bool GetDpadLeft()
+    {
+        return _leftPressed;
+    }
+
+    public bool GetDpadRight()
+    {
+        return _rightPressed;
     }
     IEnumerator connectcheck()
     {
