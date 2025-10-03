@@ -121,7 +121,7 @@ public class UnitySubscriber : MonoBehaviour
     private string[] prevStateName = new string[50];
     private int prevStateSize = 0;
     private bool stateChanged = false;
-    private Vector2 initialPosition = new Vector2(0, 725);
+    private Vector2 initialPosition = new Vector2(0, -1350);
 
     //Visualize BoxArm State
     [System.NonSerialized] public float[] boxArmExpand = new float[2];
@@ -236,9 +236,13 @@ public class UnitySubscriber : MonoBehaviour
             pointRectTransforms[i].anchorMin = new Vector2(1, 1);
             pointRectTransforms[i].anchorMax = new Vector2(1, 1);
         }
-
+        if (swerveText0 != null) swerveText0.SetText($"WheelAngle0: {wheelAngle[0]}°\nWheelSpeed0: {wheelSpeed[0]}rpm");
+        if (swerveText1 != null) swerveText1.SetText($"WheelAngle1: {wheelAngle[1]}°\nWheelSpeed1: {wheelSpeed[1]}rpm");
+        if (swerveText2 != null) swerveText2.SetText($"WheelAngle2: {wheelAngle[2]}°\nWheelSpeed2: {wheelSpeed[2]}rpm");
+        if (swerveText3 != null) swerveText3.SetText($"WheelAngle3: {wheelAngle[3]}°\nWheelSpeed3: {wheelSpeed[3]}rpm");
         float expand = Mathf.Rad2Deg * eArmExpand;
         eArmText.SetText($"E Arm\n  Get: {eArmGet.ToString("F2")}mm\n  Expand: {expand.ToString("F2")}°");
+        conveyorRPMText.SetText($"RPM1: {conveyorRPM[0].ToString("F2")}rpm\nRPM2: {conveyorRPM[1].ToString("F2")}rpm");
     }
 
     void Update()
@@ -252,7 +256,7 @@ public class UnitySubscriber : MonoBehaviour
                 currentpose_sub = ros2Node.CreateSubscription<Ps>("/localization/current_pose", currentposeCallback);
                 goalpose_sub = ros2Node.CreateSubscription<Ps>("/behavior/goal_pose", goalposeCallback);
                 path_sub = ros2Node.CreateSubscription<Pa>("/planning/path", pathCallback);
-                lookaheadpose_sub = ros2Node.CreateSubscription<Ps>("/control/lookahead_position", lookaheadposeCallback);
+                lookaheadpose_sub = ros2Node.CreateSubscription<Ps>("/control/lookahead", lookaheadposeCallback);
                 result_sub = ros2Node.CreateSubscription<Sw>("/swerve/result", resultCallback);
                 cmd_sub = ros2Node.CreateSubscription<Sw>("/visualization/swerve", cmdCallback);
                 state_sub = ros2Node.CreateSubscription<Sa>("/behavior/avaiable_state_array", stateCallback);
@@ -293,52 +297,6 @@ public class UnitySubscriber : MonoBehaviour
         goal.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, goriZ, goriW);
         robotRectTransform.anchoredPosition = new Vector3(posX, posY, 0f);
         robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, oriZ, oriW);
-
-        //Visualize Swerve Pose
-        if (swerveText0 != null) swerveText0.SetText($"WheelAngle0: {wheelAngle[0]}°\nWheelSpeed0: {wheelSpeed[0]}rpm");
-        if (swerveText1 != null) swerveText1.SetText($"WheelAngle1: {wheelAngle[1]}°\nWheelSpeed1: {wheelSpeed[1]}rpm");
-        if (swerveText2 != null) swerveText2.SetText($"WheelAngle2: {wheelAngle[2]}°\nWheelSpeed2: {wheelSpeed[2]}rpm");
-        if (swerveText3 != null) swerveText3.SetText($"WheelAngle3: {wheelAngle[3]}°\nWheelSpeed3: {wheelSpeed[3]}rpm");
-
-        for (int i = 0; i < swerve.Length; i++)
-        {
-            float t = Mathf.Clamp01(Mathf.Abs(wheelSpeed[i]) / maxSpeed);
-            Color swerveColor = Color.Lerp(minColor, maxColor, t);
-            var image = swerve[i]?.GetComponent<UnityEngine.UI.Image>();
-            image.color = swerveColor;
-            soriZ = Mathf.Sin(wheelAngle[i] /  Mathf.Rad2Deg / 2.0f);
-            soriW = Mathf.Cos(wheelAngle[i] /  Mathf.Rad2Deg / 2.0f);
-            swerveRectTransform[i].transform.rotation = new Quaternion(0f, 0f, soriZ, soriW);
-        }
-
-        //Visualize OccupancyGrid
-        if (ogDirty && ogData != null)
-        {
-            ogTexture = new Texture2D(ogWidth, ogHeight, TextureFormat.RGBA32, false);
-            ogTexture.filterMode = FilterMode.Point;
-            ogTexture.wrapMode = TextureWrapMode.Clamp;
-            for (int y = 0; y < ogHeight; y++)
-            {
-                for (int x = 0; x < ogWidth; x++)
-                {
-                    int index = y * ogWidth + x;
-                    sbyte val = ogData[index];
-                    Color ogColor;
-                    if (val == -1) ogColor = Color.gray;
-                    else if (val == 0) ogColor = Color.white;
-                    else ogColor = Color.black;
-                    ogTexture.SetPixel(ogWidth - x - 1, ogHeight - y - 1, ogColor);
-                }
-            }
-            ogTexture.Apply();
-
-            if (rawImage != null)
-            {
-                rawImage.texture = ogTexture;
-                rawImage.rectTransform.sizeDelta = new Vector2(ogWidthDefault, ogHeightDefault);
-            }
-            ogDirty = false;
-        }
 
         //Visualize Path
         if(subscribedPath != null && subscribedPath.Poses.Length > 0)
@@ -418,18 +376,9 @@ public class UnitySubscriber : MonoBehaviour
         if (stateChanged)
         {
             prevStateSize = stateSize;
-            Array.Copy(stateID, prevStateID, stateSize);      // int[] → int[]
-            Array.Copy(stateName, prevStateName, stateSize);  // string[] → string[]
+            Array.Copy(stateID, prevStateID, stateSize);
+            Array.Copy(stateName, prevStateName, stateSize);
         }
-
-        //Visualize Box Arm
-        // boxArmExpandText.SetText($"Expand1: {boxArmExpand[0].ToString("F2")}°\nExpand2: {boxArmExpand[1].ToString("F2")}°");
-        // boxArmHeightText.SetText($"Height1: {boxArmHeight[0].ToString("F2")}mm\nHeight2: {boxArmHeight[1].ToString("F2")}mm");
-        // boxArmPositionStrongText.SetText($"Position1: {boxArmPositionStrong[0].ToString("F2")}mm\nPosition2: {boxArmPositionStrong[1].ToString("F2")}mm");
-        // boxArmPositionWeakText.SetText($"Position1: {boxArmPositionWeak[0].ToString("F2")}mm\nPosition2: {boxArmPositionWeak[1].ToString("F2")}mm");
-
-        //Visualize Conveyor
-        conveyorRPMText.SetText($"RPM1: {conveyorRPM[0].ToString("F2")}rpm\nRPM2: {conveyorRPM[1].ToString("F2")}rpm");
 
         //Visualize Missing CAN ID (16進数表示)
         if (missingCanIdText != null && missingCanId != null && missingCanId.Length > 0)
@@ -445,11 +394,37 @@ public class UnitySubscriber : MonoBehaviour
 
     void mappingCallback(Og msg)
     {
-        ogWidth = (int)msg.Info.Width;
-        ogHeight = (int)msg.Info.Height;
-        ogData = (sbyte[])msg.Data.Clone();
-        ogDirty = true;
+        int width = (int)msg.Info.Width;
+        int height = (int)msg.Info.Height;
+        sbyte[] data = msg.Data;
 
+        CustomMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            texture.filterMode = FilterMode.Point;
+            texture.wrapMode = TextureWrapMode.Clamp;
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int index = x + y * width;
+                    sbyte val = data[index];
+
+                    Color color;
+                    if (val == -1)
+                        color = Color.gray;
+                    else if (val == 0)
+                        color = Color.white;
+                    else
+                        color = Color.black;
+                    texture.SetPixel(width - x - 1, height - y - 1, color);
+                }
+            }
+            texture.Apply();
+            rawImage.texture = texture;
+            rawImage.rectTransform.sizeDelta = new Vector2(ogWidthDefault, ogHeightDefault);
+        });
     }
 
     void currentposeCallback(Ps msg)
@@ -507,24 +482,52 @@ public class UnitySubscriber : MonoBehaviour
 
     void resultCallback(Sw msg)
     {
+        // データをローカル変数にコピー
+        float[] localWheelSpeed = new float[4];
+        float[] localWheelAngle = new float[4];
+        
         for (int i = 0; i < 4; i++)
         {
             if (-1.0f <= msg.Wheel_speed[i] && msg.Wheel_speed[i] <= 1.0f)
             {
-                wheelSpeed[i] = 0f;
-                wheelAngle[i] = (float)msg.Wheel_angle[i] * Mathf.Rad2Deg;
+                localWheelSpeed[i] = 0f;
+                localWheelAngle[i] = (float)msg.Wheel_angle[i] * Mathf.Rad2Deg;
             }
             else if (msg.Wheel_speed[i] < -1.0f)
             {
-                wheelSpeed[i] = Mathf.Abs(msg.Wheel_speed[i]);
-                wheelAngle[i] = ((float)msg.Wheel_angle[i] + Mathf.PI) * Mathf.Rad2Deg;
+                localWheelSpeed[i] = Mathf.Abs(msg.Wheel_speed[i]);
+                localWheelAngle[i] = ((float)msg.Wheel_angle[i] + Mathf.PI) * Mathf.Rad2Deg;
             }
             else 
             {
-                wheelSpeed[i] = (float)msg.Wheel_speed[i];
-                wheelAngle[i] = (float)msg.Wheel_angle[i] * Mathf.Rad2Deg;
+                localWheelSpeed[i] = (float)msg.Wheel_speed[i];
+                localWheelAngle[i] = (float)msg.Wheel_angle[i] * Mathf.Rad2Deg;
             }
         }
+
+        // メインスレッドでUI更新を実行
+        CustomMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            wheelSpeed = localWheelSpeed;
+            wheelAngle = localWheelAngle;
+
+            //Visualize Swerve Pose
+            if (swerveText0 != null) swerveText0.SetText($"WheelAngle0: {wheelAngle[0]}°\nWheelSpeed0: {wheelSpeed[0]}rpm");
+            if (swerveText1 != null) swerveText1.SetText($"WheelAngle1: {wheelAngle[1]}°\nWheelSpeed1: {wheelSpeed[1]}rpm");
+            if (swerveText2 != null) swerveText2.SetText($"WheelAngle2: {wheelAngle[2]}°\nWheelSpeed2: {wheelSpeed[2]}rpm");
+            if (swerveText3 != null) swerveText3.SetText($"WheelAngle3: {wheelAngle[3]}°\nWheelSpeed3: {wheelSpeed[3]}rpm");
+
+            for (int i = 0; i < swerve.Length; i++)
+            {
+                float t = Mathf.Clamp01(Mathf.Abs(wheelSpeed[i]) / maxSpeed);
+                Color swerveColor = Color.Lerp(minColor, maxColor, t);
+                var image = swerve[i]?.GetComponent<UnityEngine.UI.Image>();
+                if (image != null) image.color = swerveColor;
+                float soriZ = Mathf.Sin(wheelAngle[i] / Mathf.Rad2Deg / 2.0f);
+                float soriW = Mathf.Cos(wheelAngle[i] / Mathf.Rad2Deg / 2.0f);
+                swerveRectTransform[i].transform.rotation = new Quaternion(0f, 0f, soriZ, soriW);
+            }
+        });
     }
 
     void cmdCallback(Sw msg)
@@ -581,8 +584,18 @@ public class UnitySubscriber : MonoBehaviour
 
     void conveyorCallback(Cn msg)
     {
-        conveyorRPM[0] = msg.Conveyor_rpm[0];
-        conveyorRPM[1] = msg.Conveyor_rpm[1];
+        float rpm0 = msg.Conveyor_rpm[0];
+        float rpm1 = msg.Conveyor_rpm[1];
+        
+        CustomMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            conveyorRPM[0] = rpm0;
+            conveyorRPM[1] = rpm1;
+            if (conveyorRPMText != null)
+            {
+                conveyorRPMText.SetText($"RPM1: {conveyorRPM[0].ToString("F2")}rpm\nRPM2: {conveyorRPM[1].ToString("F2")}rpm");
+            }
+        });
     }
 
     void pylonarmCallback(Pl msg)
@@ -658,10 +671,19 @@ public class UnitySubscriber : MonoBehaviour
 
     void earmCallback(EA msg)
     {
-        eArmGet = msg.Get;
-        eArmExpand = msg.Expand;
-        float expand = Mathf.Rad2Deg * eArmExpand;
-        eArmText.SetText($"E Arm\n  Get: {eArmGet.ToString("F2")}mm\n  Expand: {expand.ToString("F2")}°");
+        float get = msg.Get;
+        float expand = msg.Expand;
+        
+        CustomMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            eArmGet = get;
+            eArmExpand = expand;
+            float expandDeg = Mathf.Rad2Deg * eArmExpand;
+            if (eArmText != null)
+            {
+                eArmText.SetText($"E Arm\n  Get: {eArmGet.ToString("F2")}mm\n  Expand: {expandDeg.ToString("F2")}°");
+            }
+        });
     }
 
     void missingCanIdCallback(IMA msg)

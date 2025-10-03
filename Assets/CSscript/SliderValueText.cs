@@ -10,7 +10,6 @@ public class SliderValueText : MonoBehaviour
 
     private void Start()
     {
-        slider.value = 0;
         UpdateValueText();
     }
 
