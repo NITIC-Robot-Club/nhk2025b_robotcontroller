@@ -42,6 +42,20 @@ public class UnitySubscriber : MonoBehaviour
     private ISubscription<EA> earm_sub;
     private ISubscription<IMA> missing_can_id_pub;
 
+    // /.../cmd topic
+    private ISubscription<Ba> boxarm_cmd_sub;
+    private ISubscription<Cn> conveyor_cmd_sub;
+    private ISubscription<Pl> pylonarm_cmd_sub;
+    private ISubscription<EA> earm_cmd_sub;
+    private float[] boxArmHeightCmd = new float[2];
+    private float[] boxArmExpandCmd = new float[2];
+    private float[] boxArmHandCmd = new float[2];
+    private float[] conveyorCmd = new float[2];
+    private float[] pylonArmHeightCmd = new float[2];
+    private float[] pylonArmExpandCmd = new float[2];
+    private float[] pylonArmCollectRpmCmd = new float[2];
+    private float earmGetCmd;
+    private float earmExpandCmd;
     private Queue<string> recqueue = new Queue<string>();
 
     //Visualize OccupancyGrid
@@ -55,6 +69,9 @@ public class UnitySubscriber : MonoBehaviour
     private const int ogHeightDefault = 960;        // px
     private bool ogIsRed = false;
     private bool isRed = false;
+    private sbyte[] prevOgData = null;
+    private int prevOgWidth = 0;
+    private int prevOgHeight = 0;
 
     //Pose Variables
     const float m2pixX = 1920.00f / 10.0f;          // px/m
@@ -102,10 +119,11 @@ public class UnitySubscriber : MonoBehaviour
     private float soriW;
 
     //Visualize Path
-    const int maxPointCount = 100;
+    const int maxPointCount = 50;
     private Pa subscribedPath;
-    private GameObject[] points = new GameObject[100];
-    private RectTransform[] pointRectTransforms = new RectTransform[100];
+    private Pa prevPath;
+    private GameObject[] points = new GameObject[50];
+    private RectTransform[] pointRectTransforms = new RectTransform[50];
     [SerializeField] GameObject pointPrefab;
     [SerializeField] GameObject pathParent;
 
@@ -129,12 +147,7 @@ public class UnitySubscriber : MonoBehaviour
     //Visualize BoxArm State
     [System.NonSerialized] public float[] boxArmExpand = new float[2];
     [System.NonSerialized] public float[] boxArmHeight = new float[2];
-    [System.NonSerialized] public float[] boxArmPositionStrong = new float[2];
-    [System.NonSerialized] public float[] boxArmPositionWeak = new float[2];
-    // [SerializeField] private TMP_Text boxArmExpandText;
-    // [SerializeField] private TMP_Text boxArmHeightText;
-    // [SerializeField] private TMP_Text boxArmPositionStrongText;
-    // [SerializeField] private TMP_Text boxArmPositionWeakText;
+    [System.NonSerialized] public float[] boxArmHandPosition = new float[2];
 
     //Visualize Conveyor State
     private float[] conveyorRPM = new float[2]; 
@@ -144,8 +157,6 @@ public class UnitySubscriber : MonoBehaviour
     [System.NonSerialized] public float[] pylonArmExpand = new float[2];
     [System.NonSerialized] public float[] pylonArmHeight = new float[2];
     [System.NonSerialized] public float[] pylonArmCollectRPM = new float[2];
-
-    private sbyte[] prevOgData = null;
 
     // private ISubscription<Rs> robotstatus_sub;
     private const float max_voltage = 12.6f;
@@ -160,17 +171,14 @@ public class UnitySubscriber : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Toggle resetPylonArmExpandToggle2;
     [SerializeField] private UnityEngine.UI.Toggle resetBoxArmHeightToggle1;
     [SerializeField] private UnityEngine.UI.Toggle resetBoxArmHeightToggle2;
-    [SerializeField] private UnityEngine.UI.Toggle resetBoxArmStrongToggle1;
-    [SerializeField] private UnityEngine.UI.Toggle resetBoxArmStrongToggle2;
-    [SerializeField] private UnityEngine.UI.Toggle resetBoxArmWeakToggle1;
-    [SerializeField] private UnityEngine.UI.Toggle resetBoxArmWeakToggle2;
+    [SerializeField] private UnityEngine.UI.Toggle resetBoxArmHandToggle1;
+    [SerializeField] private UnityEngine.UI.Toggle resetBoxArmHandToggle2;
     [SerializeField] private UnityEngine.UI.Toggle resetEArmExpandToggle;
     [SerializeField] private UnityEngine.UI.Toggle resetEArmGetToggle;
     private bool[] resetPylonArmHeight = new bool[2];
     private bool[] resetPylonArmExpand = new bool[2];
     private bool[] resetBoxArmHeight = new bool[2];
-    private bool[] resetBoxArmStrong = new bool[2];
-    private bool[] resetBoxArmWeak = new bool[2];
+    private bool[] resetBoxArmHand = new bool[2];
     private bool resetEArmExpand = new bool();
     private bool resetEArmGet = new bool();
 
@@ -186,10 +194,8 @@ public class UnitySubscriber : MonoBehaviour
     // Auto->Manual Panel Transition
     [SerializeField] private Slider boxArmHeightSlider1;
     [SerializeField] private Slider boxArmHeightSlider2;
-    [SerializeField] private Slider boxArmStrongSlider1;
-    [SerializeField] private Slider boxArmStrongSlider2;
-    [SerializeField] private Slider boxArmWeakSlider1;
-    [SerializeField] private Slider boxArmWeakSlider2;
+    [SerializeField] private Slider boxArmHandSlider1;
+    [SerializeField] private Slider boxArmHandSlider2;
     [SerializeField] private Slider boxArmExpandSlider1;
     [SerializeField] private Slider boxArmExpandSlider2;
     [SerializeField] private Slider boxConveyorRpmSlider1;
@@ -270,6 +276,10 @@ public class UnitySubscriber : MonoBehaviour
                 robotstatus_sub = ros2Node.CreateSubscription<Rs>("/robot_status", robotstatusCallback);
                 earm_sub = ros2Node.CreateSubscription<EA>("/e_arm/result", earmCallback);
                 missing_can_id_pub = ros2Node.CreateSubscription<IMA>("/missing_can_id", missingCanIdCallback);
+                conveyor_cmd_sub = ros2Node.CreateSubscription<Cn>("/conveyor/cmd", conveyorCmdCallback);
+                pylonarm_cmd_sub = ros2Node.CreateSubscription<Pl>("/pylon_arm/cmd", pylonarmCmdCallback);
+                earm_cmd_sub = ros2Node.CreateSubscription<EA>("/e_arm/cmd", earmCmdCallback);
+                boxarm_cmd_sub = ros2Node.CreateSubscription<Ba>("/box_arm/cmd", boxarmCmdCallback);
             }
         }
 
@@ -303,32 +313,124 @@ public class UnitySubscriber : MonoBehaviour
         robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, oriZ, oriW);
 
         //Visualize Path
-        if(subscribedPath != null && subscribedPath.Poses.Length > 0)
+        if(subscribedPath != null && subscribedPath.Poses != null && subscribedPath.Poses.Length > 0)
         {
-            int setmax = 0;
-            if(subscribedPath.Poses.Length<maxPointCount) setmax= subscribedPath.Poses.Length;
-            else setmax = 100;
-            for(int i = 0;i < maxPointCount;i++){
-                int num = i*subscribedPath.Poses.Length/maxPointCount;
-                if(num > (subscribedPath.Poses.Length-1))num = subscribedPath.Poses.Length-1;
-
-                float px = -(float)subscribedPath.Poses[num].Pose.Position.X*m2pixY;
-                float py = -(float)subscribedPath.Poses[num].Pose.Position.Y*m2pixX;
-
-                if (isRed)
+            // パスが変更された場合のみ更新
+            bool pathChanged = false;
+            
+            if (prevPath == null || 
+                prevPath.Poses == null || 
+                prevPath.Poses.Length != subscribedPath.Poses.Length)
+            {
+                pathChanged = true;
+            }
+            else
+            {
+                // パスの内容を比較（最初と最後のポイントのみチェックで高速化）
+                if (prevPath.Poses.Length > 0 && subscribedPath.Poses.Length > 0)
                 {
-                    pointRectTransforms[i].anchorMin = new Vector2(1, 0);
-                    pointRectTransforms[i].anchorMax = new Vector2(1, 0);
+                    var firstOld = prevPath.Poses[0].Pose.Position;
+                    var firstNew = subscribedPath.Poses[0].Pose.Position;
+                    var lastOld = prevPath.Poses[prevPath.Poses.Length - 1].Pose.Position;
+                    var lastNew = subscribedPath.Poses[subscribedPath.Poses.Length - 1].Pose.Position;
+                    
+                    if (Math.Abs(firstOld.X - firstNew.X) > 0.01 || 
+                        Math.Abs(firstOld.Y - firstNew.Y) > 0.01 ||
+                        Math.Abs(lastOld.X - lastNew.X) > 0.01 || 
+                        Math.Abs(lastOld.Y - lastNew.Y) > 0.01)
+                    {
+                        pathChanged = true;
+                    }
                 }
-                else
-                {
-                    pointRectTransforms[i].anchorMin = new Vector2(1, 1);
-                    pointRectTransforms[i].anchorMax = new Vector2(1, 1);
-                }
+            }
 
-                pointRectTransforms[i] = (RectTransform)points[i].transform;
-                pointRectTransforms[i].transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, (float)subscribedPath.Poses[num].Pose.Orientation.Z, (float)subscribedPath.Poses[num].Pose.Orientation.W);
-                pointRectTransforms[i].anchoredPosition = new Vector3(px, py, 0);
+            if (pathChanged)
+            {
+                for(int i = 0; i < maxPointCount; i++)
+                {
+                    if(points[i] != null)
+                    {
+                        Destroy(points[i]);
+                        points[i] = null;
+                        pointRectTransforms[i] = null;
+                    }
+                }
+                int setmax = Math.Min(subscribedPath.Poses.Length, maxPointCount);
+                
+                for(int i = 0; i < setmax; i++)
+                {
+                    int num = i * subscribedPath.Poses.Length / setmax;
+                    if(num >= subscribedPath.Poses.Length)
+                        num = subscribedPath.Poses.Length - 1;
+
+                    points[i] = Instantiate(pointPrefab);
+                    points[i].transform.SetParent(pathParent.transform);
+                    points[i].transform.localScale = Vector3.one;
+                    pointRectTransforms[i] = (RectTransform)points[i].transform;
+
+                    float px = -(float)subscribedPath.Poses[num].Pose.Position.X * m2pixY;
+                    float py = -(float)subscribedPath.Poses[num].Pose.Position.Y * m2pixX;
+
+                    if (isRed)
+                    {
+                        pointRectTransforms[i].anchorMin = new Vector2(1, 0);
+                        pointRectTransforms[i].anchorMax = new Vector2(1, 0);
+                    }
+                    else
+                    {
+                        pointRectTransforms[i].anchorMin = new Vector2(1, 1);
+                        pointRectTransforms[i].anchorMax = new Vector2(1, 1);
+                    }
+
+                    pointRectTransforms[i].transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, (float)subscribedPath.Poses[num].Pose.Orientation.Z, (float)subscribedPath.Poses[num].Pose.Orientation.W);
+                    pointRectTransforms[i].anchoredPosition = new Vector3(px, py, 0);
+                }
+                prevPath = new Pa();
+                prevPath.Poses = new Ps[subscribedPath.Poses.Length];
+                for (int i = 0; i < subscribedPath.Poses.Length; i++)
+                {
+                    prevPath.Poses[i] = new Ps();
+                    prevPath.Poses[i].Pose = new geometry_msgs.msg.Pose();
+                    prevPath.Poses[i].Pose.Position = new geometry_msgs.msg.Point();
+                    prevPath.Poses[i].Pose.Position.X = subscribedPath.Poses[i].Pose.Position.X;
+                    prevPath.Poses[i].Pose.Position.Y = subscribedPath.Poses[i].Pose.Position.Y;
+                    prevPath.Poses[i].Pose.Position.Z = subscribedPath.Poses[i].Pose.Position.Z;
+                }
+            }
+            else
+            {
+                for(int i = 0; i < maxPointCount; i++)
+                {
+                    if(points[i] != null && pointRectTransforms[i] != null)
+                    {
+                        if (isRed)
+                        {
+                            pointRectTransforms[i].anchorMin = new Vector2(1, 0);
+                            pointRectTransforms[i].anchorMax = new Vector2(1, 0);
+                        }
+                        else
+                        {
+                            pointRectTransforms[i].anchorMin = new Vector2(1, 1);
+                            pointRectTransforms[i].anchorMax = new Vector2(1, 1);
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (prevPath != null || points[0] != null)
+            {
+                for(int i = 0; i < maxPointCount; i++)
+                {
+                    if(points[i] != null)
+                    {
+                        Destroy(points[i]);
+                        points[i] = null;
+                        pointRectTransforms[i] = null;
+                    }
+                }
+                prevPath = null;
             }
         }
 
@@ -399,10 +501,32 @@ public class UnitySubscriber : MonoBehaviour
 
     void mappingCallback(Og msg)
     {
+        Debug.Log("Received OccupancyGrid");
         int width = (int)msg.Info.Width;
         int height = (int)msg.Info.Height;
         sbyte[] data = msg.Data;
-
+        if (prevOgData != null && 
+            prevOgWidth == width && 
+            prevOgHeight == height && 
+            prevOgData.Length == data.Length)
+        {
+            bool isSame = true;
+            for (int i = 0; i < data.Length; i++)
+            {
+                if (prevOgData[i] != data[i])
+                {
+                    isSame = false;
+                    break;
+                }
+            }
+            if (isSame)
+            {
+                return;
+            }
+        }
+        prevOgData = (sbyte[])data.Clone();
+        prevOgWidth = width;
+        prevOgHeight = height;
         CustomMainThreadDispatcher.Instance().Enqueue(() =>
         {
             Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
@@ -434,14 +558,7 @@ public class UnitySubscriber : MonoBehaviour
 
     void currentposeCallback(Ps msg)
     {
-        if (msg.Pose.Position.Y < 0)
-        {
-            ogIsRed = true;
-        }
-        else
-        {
-            ogIsRed = false;
-        }
+        Debug.Log("Received CurrentPose");
         posX = -(float)msg.Pose.Position.X * m2pixY;
         posY = -(float)msg.Pose.Position.Y * m2pixX;
         oriZ = -(float)msg.Pose.Orientation.Z;
@@ -450,44 +567,34 @@ public class UnitySubscriber : MonoBehaviour
 
     void goalposeCallback(Ps msg)
     {
-        if (msg.Pose.Position.Y < 0)
-        {
-            ogIsRed = true;
-        }
-        else
-        {
-            ogIsRed = false;
-        }
+        Debug.Log("Received GoalPose");
         gposX = -(float)msg.Pose.Position.X * m2pixY;
         gposY = -(float)msg.Pose.Position.Y * m2pixX;
         goriZ = -(float)msg.Pose.Orientation.Z;
         goriW = -(float)msg.Pose.Orientation.W;
     }
 
-    void pathCallback(Pa msg)
-    {
-        subscribedPath = msg;
-    }
-
     void lookaheadposeCallback(Ps msg)
     {
-        if (msg.Pose.Position.Y < 0)
-        {
-            ogIsRed = true;
-        }
-        else
-        {
-            ogIsRed = false;
-        }
         lposX = -(float)msg.Pose.Position.X * m2pixY;
         lposY = -(float)msg.Pose.Position.Y * m2pixX;
         loriZ = -(float)msg.Pose.Orientation.Z;
         loriW = -(float)msg.Pose.Orientation.W;
     }
 
+    void pathCallback(Pa msg)
+    {
+        Debug.Log("Received Path");
+        Pa localPath = msg;
+        CustomMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            subscribedPath = localPath;
+        });
+    }
+
     void resultCallback(Sw msg)
     {
-        // データをローカル変数にコピー
+        Debug.Log("Received Swerve Result");
         float[] localWheelSpeed = new float[4];
         float[] localWheelAngle = new float[4];
         
@@ -510,7 +617,6 @@ public class UnitySubscriber : MonoBehaviour
             }
         }
 
-        // メインスレッドでUI更新を実行
         CustomMainThreadDispatcher.Instance().Enqueue(() =>
         {
             wheelSpeed = localWheelSpeed;
@@ -537,10 +643,27 @@ public class UnitySubscriber : MonoBehaviour
 
     void cmdCallback(Sw msg)
     {
+        Debug.Log("Received Swerve Cmd");
+    }
+
+    void earmCallback(EA msg)
+    {
+        Debug.Log("Received EArm Result");
+        float localGet = msg.Get;
+        float localExpand = msg.Expand;
+
+        CustomMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            eArmGet = localGet;
+            eArmExpand = localExpand;
+            float expand = Mathf.Rad2Deg * eArmExpand;
+            eArmText.SetText($"E Arm\n  Get: {eArmGet.ToString("F2")}mm\n  Expand: {expand.ToString("F2")}°");
+        });
     }
 
     void stateCallback(Sa msg)
     {
+        Debug.Log("Received State Array");
         int newStateSize = msg.State.Length;
         string newCurrentState = msg.Name;
         int[] newStateID = new int[50];
@@ -616,10 +739,8 @@ public class UnitySubscriber : MonoBehaviour
         boxArmExpand[1] = msg.Expand[1];
         boxArmHeight[0] = msg.Height[0];
         boxArmHeight[1] = msg.Height[1];
-        boxArmPositionStrong[0] = msg.Arm_position_strong[0];
-        boxArmPositionStrong[1] = msg.Arm_position_strong[1];
-        boxArmPositionWeak[0] = msg.Arm_position_weak[0];
-        boxArmPositionWeak[1] = msg.Arm_position_weak[1];
+        boxArmHandPosition[0] = msg.Hand_position[0];
+        boxArmHandPosition[1] = msg.Hand_position[1];
     }
 
     void conveyorCallback(Cn msg)
@@ -640,6 +761,7 @@ public class UnitySubscriber : MonoBehaviour
 
     void pylonarmCallback(Pl msg)
     {
+        Debug.Log("Received PylonArm Result");
         pylonArmExpand[0] = msg.Expand[0];
         pylonArmExpand[1] = msg.Expand[1];
         pylonArmHeight[0] = msg.Height[0];
@@ -677,79 +799,116 @@ public class UnitySubscriber : MonoBehaviour
 
     void robotstatusCallback(Rs msg)
     {
-        voltage[0] = msg.Voltage[0];
-        voltage[1] = msg.Voltage[1];
-        voltage[2] = msg.Voltage[2];
-        resetPylonArmHeight[0] = msg.Reset_pylon_height[0];
-        resetPylonArmHeight[1] = msg.Reset_pylon_height[1];
-        resetPylonArmExpand[0] = msg.Reset_pylon_expand[0];
-        resetPylonArmExpand[1] = msg.Reset_pylon_expand[1];
-        resetBoxArmHeight[0] = msg.Reset_box_arm_height[0];
-        resetBoxArmHeight[1] = msg.Reset_box_arm_height[1];
-        resetBoxArmStrong[0] = msg.Reset_box_arm_strong[0];
-        resetBoxArmStrong[1] = msg.Reset_box_arm_strong[1];
-        resetBoxArmWeak[0] = msg.Reset_box_arm_weak[0];
-        resetBoxArmWeak[1] = msg.Reset_box_arm_weak[1];
-        resetEArmExpand = msg.Reset_e_arm_expand;
-        resetEArmGet = msg.Reset_e_arm_get;
-        voltageCircleGraph1.UpdateCircleGraph(voltage[0], (voltage[0] - min_voltage) / (max_voltage - min_voltage));
-        voltageCircleGraph2.UpdateCircleGraph(voltage[1], (voltage[1] - min_voltage) / (max_voltage - min_voltage));
-        voltageCircleGraph3.UpdateCircleGraph(voltage[2], (voltage[2] - min_voltage) / (max_voltage - min_voltage));
-        resetPylonArmHeightToggle1.isOn = resetPylonArmHeight[0];
-        resetPylonArmHeightToggle2.isOn = resetPylonArmHeight[1];
-        resetPylonArmExpandToggle1.isOn = resetPylonArmExpand[0];
-        resetPylonArmExpandToggle2.isOn = resetPylonArmExpand[1];
-        resetBoxArmHeightToggle1.isOn = resetBoxArmHeight[0];
-        resetBoxArmHeightToggle2.isOn = resetBoxArmHeight[1];
-        resetBoxArmStrongToggle1.isOn = resetBoxArmStrong[0];
-        resetBoxArmStrongToggle2.isOn = resetBoxArmStrong[1];
-        resetBoxArmWeakToggle1.isOn = resetBoxArmWeak[0];
-        resetBoxArmWeakToggle2.isOn = resetBoxArmWeak[1];
-        resetEArmExpandToggle.isOn = resetEArmExpand;
-        resetEArmGetToggle.isOn = resetEArmGet;
-    }
+        Debug.Log("Received RobotStatus");
+        float[] localVoltage = new float[3];
+        bool[] localResetPylonHeight = new bool[2];
+        bool[] localResetPylonExpand = new bool[2];
+        bool[] localResetBoxHeight = new bool[2];
+        bool[] localResetBoxHand = new bool[2];
+        bool localResetEArmExpand;
+        bool localResetEArmGet;
 
-    void earmCallback(EA msg)
-    {
-        float get = msg.Get;
-        float expand = msg.Expand;
-        
+        localVoltage[0] = msg.Voltage[0];
+        localVoltage[1] = msg.Voltage[1];
+        localVoltage[2] = msg.Voltage[2];
+        localResetPylonHeight[0] = msg.Reset_pylon_height[0];
+        localResetPylonHeight[1] = msg.Reset_pylon_height[1];
+        localResetPylonExpand[0] = msg.Reset_pylon_expand[0];
+        localResetPylonExpand[1] = msg.Reset_pylon_expand[1];
+        localResetBoxHeight[0] = msg.Reset_box_arm_height[0];
+        localResetBoxHeight[1] = msg.Reset_box_arm_height[1];
+        localResetBoxHand[0] = msg.Reset_box_arm_hand[0];
+        localResetBoxHand[1] = msg.Reset_box_arm_hand[1];
+        localResetEArmExpand = msg.Reset_e_arm_expand;
+        localResetEArmGet = msg.Reset_e_arm_get;
+
         CustomMainThreadDispatcher.Instance().Enqueue(() =>
         {
-            eArmGet = get;
-            eArmExpand = expand;
-            float expandDeg = Mathf.Rad2Deg * eArmExpand;
-            if (eArmText != null)
-            {
-                eArmText.SetText($"E Arm\n  Get: {eArmGet.ToString("F2")}mm\n  Expand: {expandDeg.ToString("F2")}°");
-            }
+            voltage = localVoltage;
+            resetPylonArmHeight = localResetPylonHeight;
+            resetPylonArmExpand = localResetPylonExpand;
+            resetBoxArmHeight = localResetBoxHeight;
+            resetBoxArmHand = localResetBoxHand;
+            resetEArmExpand = localResetEArmExpand;
+            resetEArmGet = localResetEArmGet;
+
+            voltageCircleGraph1.UpdateCircleGraph(voltage[0], (voltage[0] - min_voltage) / (max_voltage - min_voltage));
+            voltageCircleGraph2.UpdateCircleGraph(voltage[1], (voltage[1] - min_voltage) / (max_voltage - min_voltage));
+            voltageCircleGraph3.UpdateCircleGraph(voltage[2], (voltage[2] - min_voltage) / (max_voltage - min_voltage));
+            
+            resetPylonArmHeightToggle1.isOn = resetPylonArmHeight[0];
+            resetPylonArmHeightToggle2.isOn = resetPylonArmHeight[1];
+            resetPylonArmExpandToggle1.isOn = resetPylonArmExpand[0];
+            resetPylonArmExpandToggle2.isOn = resetPylonArmExpand[1];
+            resetBoxArmHeightToggle1.isOn = resetBoxArmHeight[0];
+            resetBoxArmHeightToggle2.isOn = resetBoxArmHeight[1];
+            resetBoxArmHandToggle1.isOn = resetBoxArmHand[0];
+            resetBoxArmHandToggle2.isOn = resetBoxArmHand[1];
+            resetEArmExpandToggle.isOn = resetEArmExpand;
+            resetEArmGetToggle.isOn = resetEArmGet;
         });
     }
 
     void missingCanIdCallback(IMA msg)
     {
-        missingCanId = (int[])msg.Data.Clone();
+        Debug.Log("Received Missing Can ID");
+        int[] localMissingCanId = (int[])msg.Data.Clone();
+        
+        CustomMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            missingCanId = localMissingCanId;
+        });
+    }
+
+    void conveyorCmdCallback(Cn msg)
+    {
+        conveyorCmd[0] = msg.Conveyor_rpm[0];
+        conveyorCmd[1] = msg.Conveyor_rpm[1];
+    }
+
+    void pylonarmCmdCallback(Pl msg)
+    {
+        pylonArmExpandCmd[0] = msg.Expand[0];
+        pylonArmExpandCmd[1] = msg.Expand[1];
+        pylonArmHeightCmd[0] = msg.Height[0];
+        pylonArmHeightCmd[1] = msg.Height[1];
+        pylonArmCollectRpmCmd[0] = msg.Collect_rpm[0];
+        pylonArmCollectRpmCmd[1] = msg.Collect_rpm[1];
+    }
+
+    void earmCmdCallback(EA msg)
+    {
+        earmGetCmd = msg.Get;
+        earmExpandCmd = msg.Expand;
+    }
+
+    void boxarmCmdCallback(Ba msg)
+    {
+        boxArmExpandCmd[0] = msg.Expand[0];
+        boxArmExpandCmd[1] = msg.Expand[1];
+        boxArmHeightCmd[0] = msg.Height[0];
+        boxArmHeightCmd[1] = msg.Height[1];
+        boxArmHandCmd[0] = msg.Hand_position[0];
+        boxArmHandCmd[1] = msg.Hand_position[1];
     }
 
     public void panelTransition()
     {
-        boxArmHeightSlider1.value = 0.1f;
-        boxArmHeightSlider2.value = 0.1f;
-        boxArmStrongSlider1.value = 0f;
-        boxArmStrongSlider2.value = 0f;
-        boxArmWeakSlider1.value = 0.6f;
-        boxArmWeakSlider2.value = 0.6f;
-        boxArmExpandSlider1.value = 90.0f;
-        boxArmExpandSlider2.value = 90.0f;
-        boxConveyorRpmSlider1.value = conveyorRPM[0];
-        boxConveyorRpmSlider2.value = conveyorRPM[1];
-        pylonArmHeightSlider1.value = pylonArmHeight[0];
-        pylonArmHeightSlider2.value = pylonArmHeight[1];
-        pylonArmCollectRpmSlider1.value = pylonArmCollectRPM[0];
-        pylonArmCollectRpmSlider2.value = pylonArmCollectRPM[1];
-        pylonArmExpandSlider1.value = pylonArmExpand[0];
-        pylonArmExpandSlider2.value = pylonArmExpand[1];
-        eArmGetSlider.value = eArmGet;
-        eArmExpandSlider.value = eArmExpand;
+        boxArmExpandSlider1.value = boxArmExpandCmd[0];
+        boxArmExpandSlider2.value = boxArmExpandCmd[1];
+        boxArmHeightSlider1.value = boxArmHeightCmd[0];
+        boxArmHeightSlider2.value = boxArmHeightCmd[1];
+        boxArmHandSlider1.value = boxArmHandCmd[0];
+        boxArmHandSlider2.value = boxArmHandCmd[1];
+        boxConveyorRpmSlider1.value = conveyorCmd[0];
+        boxConveyorRpmSlider2.value = conveyorCmd[1];
+        pylonArmHeightSlider1.value = pylonArmHeightCmd[0];
+        pylonArmHeightSlider2.value = pylonArmHeightCmd[1];
+        pylonArmCollectRpmSlider1.value = pylonArmCollectRpmCmd[0];
+        pylonArmCollectRpmSlider2.value = pylonArmCollectRpmCmd[1];
+        pylonArmExpandSlider1.value = pylonArmExpandCmd[0];
+        pylonArmExpandSlider2.value = pylonArmExpandCmd[1];
+        eArmGetSlider.value = earmGetCmd;
+        eArmExpandSlider.value = earmExpandCmd;
     }
 }

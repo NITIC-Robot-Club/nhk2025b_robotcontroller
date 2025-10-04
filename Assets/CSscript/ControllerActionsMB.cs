@@ -73,6 +73,10 @@ public class ControllerActionsMB : MonoBehaviour
         {
             nowpanel = AndPanelList.pylon_arm;
         }
+        else if(uiope.GetComponent<PanelContoroller>().getIsEArm())
+        {
+            nowpanel = AndPanelList.e_arm;
+        }
     }
 
     private void OnDestroy()
@@ -119,5 +123,5 @@ public enum AndButtonList
 }
 public enum AndPanelList
 {   
-    con,main,CMD,Null,auto,chassis,conveyor,box_arm,pylon_arm
+    con,main,CMD,Null,auto,chassis,conveyor,box_arm,pylon_arm,e_arm
 }

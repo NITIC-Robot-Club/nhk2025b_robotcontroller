@@ -44,7 +44,8 @@ public class UnityPublisher : MonoBehaviour
     [SerializeField] Button automateReadyButton;
     [SerializeField] Button pauseButton;
     [SerializeField] Button continueButton;
-    [SerializeField] Button resetButton;
+    [SerializeField] Button wingResetButton;
+    [SerializeField] Button clawResetButton;
     private IEnumerator commandRoutine;
     private IEnumerator publishButtonCommandRoutine;
     private IPublisher<Co> command_pub; 
@@ -56,10 +57,8 @@ public class UnityPublisher : MonoBehaviour
     private IPublisher<Ba> boxArm_pub;
     [SerializeField] private Slider boxArmHeightSlider1;
     [SerializeField] private Slider boxArmHeightSlider2;
-    [SerializeField] private Slider boxArmStrongSlider1;
-    [SerializeField] private Slider boxArmStrongSlider2;
-    [SerializeField] private Slider boxArmWeakSlider1;
-    [SerializeField] private Slider boxArmWeakSlider2;
+    [SerializeField] private Slider boxArmHandPositionSlider1;
+    [SerializeField] private Slider boxArmHandPositionSlider2;
     [SerializeField] private Slider boxArmExpandSlider1;
     [SerializeField] private Slider boxArmExpandSlider2;
 
@@ -123,7 +122,8 @@ public class UnityPublisher : MonoBehaviour
         automateReadyButton.onClick.AddListener(() => automateReadyButtonClicked());
         pauseButton.onClick.AddListener( () => pauseButtonClicked());
         continueButton.onClick.AddListener( () => continueButtonClicked());
-        resetButton.onClick.AddListener( () => resetButtonClicked());
+        clawResetButton.onClick.AddListener( () => clawResetButtonClicked());
+        wingResetButton.onClick.AddListener( () => wingResetButtonClicked());
         fieldRoutine = publishFieldStatus();
 
         // 長押し検出用のEventTriggerを追加
@@ -218,26 +218,34 @@ public class UnityPublisher : MonoBehaviour
     private void automateReadyButtonClicked()
     {
         allowAutomate = !allowAutomate;
-        commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset = false });
+        commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset_claw = false, Reset_wing = false });
     }
 
     private void pauseButtonClicked()
     {
         signal = false;
-        commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset = false });
+        commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset_claw = false, Reset_wing = false });
     }
 
     private void continueButtonClicked()
     {
         signal = true;
-        commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset = false });
+        commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset_claw = false, Reset_wing = false });
     }
 
-    private void resetButtonClicked()
+    private void clawResetButtonClicked()
     {
         for (int i = 0; i < 3; i++)
         {
-            commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset = true });
+            commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset_claw = true, Reset_wing = false });
+        }
+    }
+
+    private void wingResetButtonClicked()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset_claw = false, Reset_wing = true });
         }
     }
 
@@ -253,7 +261,8 @@ public class UnityPublisher : MonoBehaviour
                     {
                         Allow_automate = allowAutomate,
                         Signal = signal,
-                        Reset = false
+                        Reset_claw = false,
+                        Reset_wing = false
                     };
                     command_pub.Publish(command);
                 }                
@@ -266,19 +275,6 @@ public class UnityPublisher : MonoBehaviour
             yield return new WaitForSeconds(pub_hz);
         }
     }
-
-    // IEnumerator publishButtonCommand()
-    // {
-    //     while (true)
-    //     {
-    //         if (commandmsgs.Count != 0)
-    //         {
-    //             Co command_msg = commandmsgs.Dequeue();
-    //             command_pub.Publish(command_msg);
-    //         }
-    //         yield return new WaitForSeconds(pub_hz);
-    //     }
-    // }
 
     public void ResetJoystickInput()
     {
@@ -297,10 +293,8 @@ public class UnityPublisher : MonoBehaviour
                 Ba boxArm_msg = new Ba();
                 boxArm_msg.Height[0] = boxArmHeightSlider1.value;
                 boxArm_msg.Height[1] = boxArmHeightSlider2.value;
-                boxArm_msg.Arm_position_strong[0] = boxArmStrongSlider1.value;
-                boxArm_msg.Arm_position_strong[1] = boxArmStrongSlider2.value;
-                boxArm_msg.Arm_position_weak[0] = boxArmWeakSlider1.value;
-                boxArm_msg.Arm_position_weak[1] = boxArmWeakSlider2.value;
+                boxArm_msg.Hand_position[0] = boxArmHandPositionSlider1.value;
+                boxArm_msg.Hand_position[1] = boxArmHandPositionSlider2.value;
                 boxArm_msg.Expand[0] = boxArmExpandSlider1.value * Mathf.Deg2Rad;
                 boxArm_msg.Expand[1] = boxArmExpandSlider2.value * Mathf.Deg2Rad;
                 boxArm_pub.Publish(boxArm_msg);
