@@ -231,5 +231,5 @@ public enum ButtonList
 }
 public enum PanelList
 {   
-    con,main,CMD,Null,auto,chassis,conveyor,box_arm,pylon_arm
+    con,main,CMD,Null,auto,chassis,conveyor,box_arm,pylon_arm,e_arm
 }

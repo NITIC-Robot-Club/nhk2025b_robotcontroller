@@ -192,22 +192,22 @@ public class UnitySubscriber : MonoBehaviour
     [SerializeField] private TMP_Text missingCanIdText;
 
     // Auto->Manual Panel Transition
-    [SerializeField] private Slider boxArmHeightSlider1;
-    [SerializeField] private Slider boxArmHeightSlider2;
-    [SerializeField] private Slider boxArmHandSlider1;
-    [SerializeField] private Slider boxArmHandSlider2;
-    [SerializeField] private Slider boxArmExpandSlider1;
-    [SerializeField] private Slider boxArmExpandSlider2;
-    [SerializeField] private Slider boxConveyorRpmSlider1;
-    [SerializeField] private Slider boxConveyorRpmSlider2;
-    [SerializeField] private Slider pylonArmHeightSlider1;
-    [SerializeField] private Slider pylonArmHeightSlider2;
-    [SerializeField] private Slider pylonArmCollectRpmSlider1;
-    [SerializeField] private Slider pylonArmCollectRpmSlider2;
-    [SerializeField] private Slider pylonArmExpandSlider1;
-    [SerializeField] private Slider pylonArmExpandSlider2;
-    [SerializeField] private Slider eArmGetSlider;
-    [SerializeField] private Slider eArmExpandSlider;
+    [SerializeField] public Slider boxArmHeightSlider1;
+    [SerializeField] public Slider boxArmHeightSlider2;
+    [SerializeField] public Slider boxArmHandSlider1;
+    [SerializeField] public Slider boxArmHandSlider2;
+    [SerializeField] public Slider boxArmExpandSlider1;
+    [SerializeField] public Slider boxArmExpandSlider2;
+    [SerializeField] public Slider boxConveyorRpmSlider1;
+    [SerializeField] public Slider boxConveyorRpmSlider2;
+    [SerializeField] public Slider pylonArmHeightSlider1;
+    [SerializeField] public Slider pylonArmHeightSlider2;
+    [SerializeField] public Slider pylonArmCollectRpmSlider1;
+    [SerializeField] public Slider pylonArmCollectRpmSlider2;
+    [SerializeField] public Slider pylonArmExpandSlider1;
+    [SerializeField] public Slider pylonArmExpandSlider2;
+    [SerializeField] public Slider eArmGetSlider;
+    [SerializeField] public Slider eArmExpandSlider;
 
     void Start()
     {
