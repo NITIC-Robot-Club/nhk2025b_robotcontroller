@@ -47,15 +47,10 @@ public class UnitySubscriber : MonoBehaviour
     private ISubscription<Cn> conveyor_cmd_sub;
     private ISubscription<Pl> pylonarm_cmd_sub;
     private ISubscription<EA> earm_cmd_sub;
-    private float[] boxArmHeightCmd = new float[2];
-    private float[] boxArmExpandCmd = new float[2];
-    private float[] boxArmHandCmd = new float[2];
-    private float[] conveyorCmd = new float[2];
-    private float[] pylonArmHeightCmd = new float[2];
-    private float[] pylonArmExpandCmd = new float[2];
-    private float[] pylonArmCollectRpmCmd = new float[2];
-    private float earmGetCmd;
-    private float earmExpandCmd;
+    Ba boxArmCmd = new Ba();
+    Cn conveyorCmd = new Cn();
+    Pl pylonArmCmd = new Pl();
+    EA earmCmd = new EA();
     private Queue<string> recqueue = new Queue<string>();
 
     //Visualize OccupancyGrid
@@ -501,7 +496,6 @@ public class UnitySubscriber : MonoBehaviour
 
     void mappingCallback(Og msg)
     {
-        Debug.Log("Received OccupancyGrid");
         int width = (int)msg.Info.Width;
         int height = (int)msg.Info.Height;
         sbyte[] data = msg.Data;
@@ -558,7 +552,6 @@ public class UnitySubscriber : MonoBehaviour
 
     void currentposeCallback(Ps msg)
     {
-        Debug.Log("Received CurrentPose");
         posX = -(float)msg.Pose.Position.X * m2pixY;
         posY = -(float)msg.Pose.Position.Y * m2pixX;
         oriZ = -(float)msg.Pose.Orientation.Z;
@@ -567,7 +560,6 @@ public class UnitySubscriber : MonoBehaviour
 
     void goalposeCallback(Ps msg)
     {
-        Debug.Log("Received GoalPose");
         gposX = -(float)msg.Pose.Position.X * m2pixY;
         gposY = -(float)msg.Pose.Position.Y * m2pixX;
         goriZ = -(float)msg.Pose.Orientation.Z;
@@ -584,7 +576,6 @@ public class UnitySubscriber : MonoBehaviour
 
     void pathCallback(Pa msg)
     {
-        Debug.Log("Received Path");
         Pa localPath = msg;
         CustomMainThreadDispatcher.Instance().Enqueue(() =>
         {
@@ -594,7 +585,6 @@ public class UnitySubscriber : MonoBehaviour
 
     void resultCallback(Sw msg)
     {
-        Debug.Log("Received Swerve Result");
         float[] localWheelSpeed = new float[4];
         float[] localWheelAngle = new float[4];
         
@@ -643,12 +633,10 @@ public class UnitySubscriber : MonoBehaviour
 
     void cmdCallback(Sw msg)
     {
-        Debug.Log("Received Swerve Cmd");
     }
 
     void earmCallback(EA msg)
     {
-        Debug.Log("Received EArm Result");
         float localGet = msg.Get;
         float localExpand = msg.Expand;
 
@@ -663,7 +651,6 @@ public class UnitySubscriber : MonoBehaviour
 
     void stateCallback(Sa msg)
     {
-        Debug.Log("Received State Array");
         int newStateSize = msg.State.Length;
         string newCurrentState = msg.Name;
         int[] newStateID = new int[50];
@@ -761,7 +748,6 @@ public class UnitySubscriber : MonoBehaviour
 
     void pylonarmCallback(Pl msg)
     {
-        Debug.Log("Received PylonArm Result");
         pylonArmExpand[0] = msg.Expand[0];
         pylonArmExpand[1] = msg.Expand[1];
         pylonArmHeight[0] = msg.Height[0];
@@ -799,7 +785,6 @@ public class UnitySubscriber : MonoBehaviour
 
     void robotstatusCallback(Rs msg)
     {
-        Debug.Log("Received RobotStatus");
         float[] localVoltage = new float[3];
         bool[] localResetPylonHeight = new bool[2];
         bool[] localResetPylonExpand = new bool[2];
@@ -851,7 +836,6 @@ public class UnitySubscriber : MonoBehaviour
 
     void missingCanIdCallback(IMA msg)
     {
-        Debug.Log("Received Missing Can ID");
         int[] localMissingCanId = (int[])msg.Data.Clone();
         
         CustomMainThreadDispatcher.Instance().Enqueue(() =>
@@ -862,53 +846,41 @@ public class UnitySubscriber : MonoBehaviour
 
     void conveyorCmdCallback(Cn msg)
     {
-        conveyorCmd[0] = msg.Conveyor_rpm[0];
-        conveyorCmd[1] = msg.Conveyor_rpm[1];
+        conveyorCmd = msg;
     }
 
     void pylonarmCmdCallback(Pl msg)
     {
-        pylonArmExpandCmd[0] = msg.Expand[0];
-        pylonArmExpandCmd[1] = msg.Expand[1];
-        pylonArmHeightCmd[0] = msg.Height[0];
-        pylonArmHeightCmd[1] = msg.Height[1];
-        pylonArmCollectRpmCmd[0] = msg.Collect_rpm[0];
-        pylonArmCollectRpmCmd[1] = msg.Collect_rpm[1];
+        pylonArmCmd = msg;
     }
 
     void earmCmdCallback(EA msg)
     {
-        earmGetCmd = msg.Get;
-        earmExpandCmd = msg.Expand;
+        earmCmd = msg;
     }
 
     void boxarmCmdCallback(Ba msg)
     {
-        boxArmExpandCmd[0] = msg.Expand[0];
-        boxArmExpandCmd[1] = msg.Expand[1];
-        boxArmHeightCmd[0] = msg.Height[0];
-        boxArmHeightCmd[1] = msg.Height[1];
-        boxArmHandCmd[0] = msg.Hand_position[0];
-        boxArmHandCmd[1] = msg.Hand_position[1];
+        boxArmCmd = msg;
     }
 
     public void panelTransition()
     {
-        boxArmExpandSlider1.value = boxArmExpandCmd[0];
-        boxArmExpandSlider2.value = boxArmExpandCmd[1];
-        boxArmHeightSlider1.value = boxArmHeightCmd[0];
-        boxArmHeightSlider2.value = boxArmHeightCmd[1];
-        boxArmHandSlider1.value = boxArmHandCmd[0];
-        boxArmHandSlider2.value = boxArmHandCmd[1];
-        boxConveyorRpmSlider1.value = conveyorCmd[0];
-        boxConveyorRpmSlider2.value = conveyorCmd[1];
-        pylonArmHeightSlider1.value = pylonArmHeightCmd[0];
-        pylonArmHeightSlider2.value = pylonArmHeightCmd[1];
-        pylonArmCollectRpmSlider1.value = pylonArmCollectRpmCmd[0];
-        pylonArmCollectRpmSlider2.value = pylonArmCollectRpmCmd[1];
-        pylonArmExpandSlider1.value = pylonArmExpandCmd[0];
-        pylonArmExpandSlider2.value = pylonArmExpandCmd[1];
-        eArmGetSlider.value = earmGetCmd;
-        eArmExpandSlider.value = earmExpandCmd;
+        boxArmExpandSlider1.value = boxArmCmd.Expand[0] * Mathf.Rad2Deg;
+        boxArmExpandSlider2.value = boxArmCmd.Expand[1] * Mathf.Rad2Deg;
+        boxArmHeightSlider1.value = boxArmCmd.Height[0] * 1000.0f;
+        boxArmHeightSlider2.value = boxArmCmd.Height[1] * 1000.0f;
+        boxArmHandSlider1.value = boxArmCmd.Hand_position[0];
+        boxArmHandSlider2.value = boxArmCmd.Hand_position[1];
+        boxConveyorRpmSlider1.value = conveyorCmd.Conveyor_rpm[0];
+        boxConveyorRpmSlider2.value = conveyorCmd.Conveyor_rpm[1];
+        pylonArmHeightSlider1.value = pylonArmCmd.Height[0] * 1000.0f;
+        pylonArmHeightSlider2.value = pylonArmCmd.Height[1] * 1000.0f;
+        pylonArmCollectRpmSlider1.value = pylonArmCmd.Collect_rpm[0];
+        pylonArmCollectRpmSlider2.value = pylonArmCmd.Collect_rpm[1];
+        pylonArmExpandSlider1.value = pylonArmCmd.Expand[0] * Mathf.Rad2Deg;
+        pylonArmExpandSlider2.value = pylonArmCmd.Expand[1] * Mathf.Rad2Deg;
+        eArmGetSlider.value = earmCmd.Get * 1000.0f;
+        eArmExpandSlider.value = earmCmd.Expand * Mathf.Rad2Deg;
     }
 }
