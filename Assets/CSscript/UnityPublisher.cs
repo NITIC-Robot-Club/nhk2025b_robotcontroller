@@ -291,8 +291,8 @@ public class UnityPublisher : MonoBehaviour
             if (!is_auto && boxArm_pub != null)
             {
                 Ba boxArm_msg = new Ba();
-                boxArm_msg.Height[0] = boxArmHeightSlider1.value;
-                boxArm_msg.Height[1] = boxArmHeightSlider2.value;
+                boxArm_msg.Height[0] = boxArmHeightSlider1.value / 1000.0f;
+                boxArm_msg.Height[1] = boxArmHeightSlider2.value / 1000.0f;
                 boxArm_msg.Hand_position[0] = boxArmHandPositionSlider1.value;
                 boxArm_msg.Hand_position[1] = boxArmHandPositionSlider2.value;
                 boxArm_msg.Expand[0] = boxArmExpandSlider1.value * Mathf.Deg2Rad;
