@@ -55,8 +55,6 @@ public class UnitySubscriber : MonoBehaviour
 
     //Visualize OccupancyGrid
     public RawImage rawImage;
-    private int ogWidth = 1920;
-    private int ogHeight = 960;
     private sbyte[] ogData;
     private Texture2D ogTexture;
     private bool ogDirty = false;
@@ -75,26 +73,17 @@ public class UnitySubscriber : MonoBehaviour
     //Current Pose Subscriber
     public GameObject robot;
     private RectTransform robotRectTransform;
-    private float posX;
-    private float posY;
-    private float oriZ;
-    private float oriW;
+    Ps currentPose = new Ps();
 
     //Goal Pose Subscriber
     public GameObject goal;
     private RectTransform goalRectTransform;
-    private float gposX;
-    private float gposY;
-    private float goriZ;
-    private float goriW;
+    Ps goalPose = new Ps();
 
     //Lookahead Subscriber
     public GameObject lookahead;
     private RectTransform lookaheadRectTransform;
-    private float lposX;
-    private float lposY;
-    private float loriZ;
-    private float loriW;
+    Ps lookaheadPose = new Ps();
 
     //Result Subscriber
     const float maxSpeed = 1000.0f;
@@ -140,18 +129,14 @@ public class UnitySubscriber : MonoBehaviour
     private int nowStateId = 0;
 
     //Visualize BoxArm State
-    [System.NonSerialized] public float[] boxArmExpand = new float[2];
-    [System.NonSerialized] public float[] boxArmHeight = new float[2];
-    [System.NonSerialized] public float[] boxArmHandPosition = new float[2];
+    [System.NonSerialized] public Ba boxArmState = new Ba();
 
     //Visualize Conveyor State
     private float[] conveyorRPM = new float[2]; 
     [SerializeField] private TMP_Text conveyorRPMText;
 
     //Visualize PylonArm State
-    [System.NonSerialized] public float[] pylonArmExpand = new float[2];
-    [System.NonSerialized] public float[] pylonArmHeight = new float[2];
-    [System.NonSerialized] public float[] pylonArmCollectRPM = new float[2];
+    [System.NonSerialized] public Pl pylonArmState = new Pl();
 
     // private ISubscription<Rs> robotstatus_sub;
     private const float max_voltage = 12.6f;
@@ -170,16 +155,10 @@ public class UnitySubscriber : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Toggle resetBoxArmHandToggle2;
     [SerializeField] private UnityEngine.UI.Toggle resetEArmExpandToggle;
     [SerializeField] private UnityEngine.UI.Toggle resetEArmGetToggle;
-    private bool[] resetPylonArmHeight = new bool[2];
-    private bool[] resetPylonArmExpand = new bool[2];
-    private bool[] resetBoxArmHeight = new bool[2];
-    private bool[] resetBoxArmHand = new bool[2];
-    private bool resetEArmExpand = new bool();
-    private bool resetEArmGet = new bool();
+    Rs robotStatus = new Rs();
 
     // E-Arm
-    public float eArmGet;
-    public float eArmExpand;
+    [System.NonSerialized] public EA eArmState = new EA();
     [SerializeField] private TMP_Text eArmText;
 
     // Missing CAN ID
@@ -244,8 +223,8 @@ public class UnitySubscriber : MonoBehaviour
         if (swerveText1 != null) swerveText1.SetText($"WheelAngle1: {wheelAngle[1]}°\nWheelSpeed1: {wheelSpeed[1]}rpm");
         if (swerveText2 != null) swerveText2.SetText($"WheelAngle2: {wheelAngle[2]}°\nWheelSpeed2: {wheelSpeed[2]}rpm");
         if (swerveText3 != null) swerveText3.SetText($"WheelAngle3: {wheelAngle[3]}°\nWheelSpeed3: {wheelSpeed[3]}rpm");
-        float expand = Mathf.Rad2Deg * eArmExpand;
-        eArmText.SetText($"E Arm\n  Get: {eArmGet.ToString("F2")}mm\n  Expand: {expand.ToString("F2")}°");
+        float expand = Mathf.Rad2Deg * eArmState.Expand;
+        eArmText.SetText($"E Arm\n  Get: {eArmState.Get.ToString("F2")}mm\n  Expand: {expand.ToString("F2")}°");
         conveyorRPMText.SetText($"RPM1: {conveyorRPM[0].ToString("F2")}rpm\nRPM2: {conveyorRPM[1].ToString("F2")}rpm");
     }
 
@@ -299,13 +278,24 @@ public class UnitySubscriber : MonoBehaviour
             robotRectTransform.anchorMin = new Vector2(1, 0);
             robotRectTransform.anchorMax = new Vector2(1, 0);
         }
-
-        lookaheadRectTransform.anchoredPosition = new Vector3(lposX, lposY, 0f);
-        lookahead.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, loriZ, loriW);
-        goalRectTransform.anchoredPosition = new Vector3(gposX, gposY, 0f);
-        goal.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, goriZ, goriW);
-        robotRectTransform.anchoredPosition = new Vector3(posX, posY, 0f);
-        robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, oriZ, oriW);
+        if (!isRed)
+        {
+            lookaheadRectTransform.anchoredPosition = new Vector3(-(float)lookaheadPose.Pose.Position.X * m2pixY, -(float)lookaheadPose.Pose.Position.Y * m2pixX, 0f);
+            lookahead.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, (float)lookaheadPose.Pose.Orientation.Z, (float)lookaheadPose.Pose.Orientation.W);
+            goalRectTransform.anchoredPosition = new Vector3(-(float)goalPose.Pose.Position.X * m2pixY, -(float)goalPose.Pose.Position.Y * m2pixX, 0f);
+            goal.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, (float)goalPose.Pose.Orientation.Z, (float)goalPose.Pose.Orientation.W);
+            robotRectTransform.anchoredPosition = new Vector3(-(float)currentPose.Pose.Position.X * m2pixY, -(float)currentPose.Pose.Position.Y * m2pixX, 0f);
+            robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, (float)currentPose.Pose.Orientation.Z, (float)currentPose.Pose.Orientation.W);
+        }
+        else
+        {
+            lookaheadRectTransform.anchoredPosition = new Vector3(-(float)lookaheadPose.Pose.Position.X * m2pixY, (float)lookaheadPose.Pose.Position.Y * m2pixX, 0f);
+            lookahead.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, -(float)lookaheadPose.Pose.Orientation.Z, (float)lookaheadPose.Pose.Orientation.W);
+            goalRectTransform.anchoredPosition = new Vector3(-(float)goalPose.Pose.Position.X * m2pixY, (float)goalPose.Pose.Position.Y * m2pixX, 0f);
+            goal.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, -(float)goalPose.Pose.Orientation.Z, (float)goalPose.Pose.Orientation.W);
+            robotRectTransform.anchoredPosition = new Vector3(-(float)currentPose.Pose.Position.X * m2pixY, (float)currentPose.Pose.Position.Y * m2pixX, 0f);
+            robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, -(float)currentPose.Pose.Orientation.Z, (float)currentPose.Pose.Orientation.W);
+        }
 
         //Visualize Path
         if(subscribedPath != null && subscribedPath.Poses != null && subscribedPath.Poses.Length > 0)
@@ -552,26 +542,17 @@ public class UnitySubscriber : MonoBehaviour
 
     void currentposeCallback(Ps msg)
     {
-        posX = -(float)msg.Pose.Position.X * m2pixY;
-        posY = -(float)msg.Pose.Position.Y * m2pixX;
-        oriZ = -(float)msg.Pose.Orientation.Z;
-        oriW = -(float)msg.Pose.Orientation.W;
+        currentPose = msg;
     }
 
     void goalposeCallback(Ps msg)
     {
-        gposX = -(float)msg.Pose.Position.X * m2pixY;
-        gposY = -(float)msg.Pose.Position.Y * m2pixX;
-        goriZ = -(float)msg.Pose.Orientation.Z;
-        goriW = -(float)msg.Pose.Orientation.W;
+        goalPose = msg;
     }
 
     void lookaheadposeCallback(Ps msg)
     {
-        lposX = -(float)msg.Pose.Position.X * m2pixY;
-        lposY = -(float)msg.Pose.Position.Y * m2pixX;
-        loriZ = -(float)msg.Pose.Orientation.Z;
-        loriW = -(float)msg.Pose.Orientation.W;
+        lookaheadPose = msg;
     }
 
     void pathCallback(Pa msg)
@@ -637,15 +618,11 @@ public class UnitySubscriber : MonoBehaviour
 
     void earmCallback(EA msg)
     {
-        float localGet = msg.Get;
-        float localExpand = msg.Expand;
+        eArmState = msg;
 
         CustomMainThreadDispatcher.Instance().Enqueue(() =>
         {
-            eArmGet = localGet;
-            eArmExpand = localExpand;
-            float expand = Mathf.Rad2Deg * eArmExpand;
-            eArmText.SetText($"E Arm\n  Get: {eArmGet.ToString("F2")}mm\n  Expand: {expand.ToString("F2")}°");
+            eArmText.SetText($"E Arm\n  Get: {eArmState.Get.ToString("F2")}mm\n  Expand: {(eArmState.Expand * Mathf.Rad2Deg).ToString("F2")}°");
         });
     }
 
@@ -722,12 +699,7 @@ public class UnitySubscriber : MonoBehaviour
 
     void boxarmCallback(Ba msg)
     {
-        boxArmExpand[0] = msg.Expand[0];
-        boxArmExpand[1] = msg.Expand[1];
-        boxArmHeight[0] = msg.Height[0];
-        boxArmHeight[1] = msg.Height[1];
-        boxArmHandPosition[0] = msg.Hand_position[0];
-        boxArmHandPosition[1] = msg.Hand_position[1];
+        boxArmState = msg;
     }
 
     void conveyorCallback(Cn msg)
@@ -748,12 +720,7 @@ public class UnitySubscriber : MonoBehaviour
 
     void pylonarmCallback(Pl msg)
     {
-        pylonArmExpand[0] = msg.Expand[0];
-        pylonArmExpand[1] = msg.Expand[1];
-        pylonArmHeight[0] = msg.Height[0];
-        pylonArmHeight[1] = msg.Height[1];
-        pylonArmCollectRPM[0] = msg.Collect_rpm[0];
-        pylonArmCollectRPM[1] = msg.Collect_rpm[1];
+        pylonArmState = msg;
     }
 
     void OnOccupancyGridReceived(Og msg)
@@ -785,52 +752,23 @@ public class UnitySubscriber : MonoBehaviour
 
     void robotstatusCallback(Rs msg)
     {
-        float[] localVoltage = new float[3];
-        bool[] localResetPylonHeight = new bool[2];
-        bool[] localResetPylonExpand = new bool[2];
-        bool[] localResetBoxHeight = new bool[2];
-        bool[] localResetBoxHand = new bool[2];
-        bool localResetEArmExpand;
-        bool localResetEArmGet;
-
-        localVoltage[0] = msg.Voltage[0];
-        localVoltage[1] = msg.Voltage[1];
-        localVoltage[2] = msg.Voltage[2];
-        localResetPylonHeight[0] = msg.Reset_pylon_height[0];
-        localResetPylonHeight[1] = msg.Reset_pylon_height[1];
-        localResetPylonExpand[0] = msg.Reset_pylon_expand[0];
-        localResetPylonExpand[1] = msg.Reset_pylon_expand[1];
-        localResetBoxHeight[0] = msg.Reset_box_arm_height[0];
-        localResetBoxHeight[1] = msg.Reset_box_arm_height[1];
-        localResetBoxHand[0] = msg.Reset_box_arm_hand[0];
-        localResetBoxHand[1] = msg.Reset_box_arm_hand[1];
-        localResetEArmExpand = msg.Reset_e_arm_expand;
-        localResetEArmGet = msg.Reset_e_arm_get;
+        robotStatus = msg;
 
         CustomMainThreadDispatcher.Instance().Enqueue(() =>
         {
-            voltage = localVoltage;
-            resetPylonArmHeight = localResetPylonHeight;
-            resetPylonArmExpand = localResetPylonExpand;
-            resetBoxArmHeight = localResetBoxHeight;
-            resetBoxArmHand = localResetBoxHand;
-            resetEArmExpand = localResetEArmExpand;
-            resetEArmGet = localResetEArmGet;
-
-            voltageCircleGraph1.UpdateCircleGraph(voltage[0], (voltage[0] - min_voltage) / (max_voltage - min_voltage));
-            voltageCircleGraph2.UpdateCircleGraph(voltage[1], (voltage[1] - min_voltage) / (max_voltage - min_voltage));
-            voltageCircleGraph3.UpdateCircleGraph(voltage[2], (voltage[2] - min_voltage) / (max_voltage - min_voltage));
-            
-            resetPylonArmHeightToggle1.isOn = resetPylonArmHeight[0];
-            resetPylonArmHeightToggle2.isOn = resetPylonArmHeight[1];
-            resetPylonArmExpandToggle1.isOn = resetPylonArmExpand[0];
-            resetPylonArmExpandToggle2.isOn = resetPylonArmExpand[1];
-            resetBoxArmHeightToggle1.isOn = resetBoxArmHeight[0];
-            resetBoxArmHeightToggle2.isOn = resetBoxArmHeight[1];
-            resetBoxArmHandToggle1.isOn = resetBoxArmHand[0];
-            resetBoxArmHandToggle2.isOn = resetBoxArmHand[1];
-            resetEArmExpandToggle.isOn = resetEArmExpand;
-            resetEArmGetToggle.isOn = resetEArmGet;
+            voltageCircleGraph1.UpdateCircleGraph(robotStatus.Voltage[0], (robotStatus.Voltage[0] - min_voltage) / (max_voltage - min_voltage));
+            voltageCircleGraph2.UpdateCircleGraph(robotStatus.Voltage[1], (robotStatus.Voltage[1] - min_voltage) / (max_voltage - min_voltage));
+            voltageCircleGraph3.UpdateCircleGraph(robotStatus.Voltage[2], (robotStatus.Voltage[2] - min_voltage) / (max_voltage - min_voltage));
+            resetPylonArmHeightToggle1.isOn = robotStatus.Reset_pylon_height[0];
+            resetPylonArmHeightToggle2.isOn = robotStatus.Reset_pylon_height[1];
+            resetPylonArmExpandToggle1.isOn = robotStatus.Reset_pylon_expand[0];
+            resetPylonArmExpandToggle2.isOn = robotStatus.Reset_pylon_expand[1];
+            resetBoxArmHeightToggle1.isOn = robotStatus.Reset_box_arm_height[0];
+            resetBoxArmHeightToggle2.isOn = robotStatus.Reset_box_arm_height[1];
+            resetBoxArmHandToggle1.isOn = robotStatus.Reset_box_arm_hand[0];
+            resetBoxArmHandToggle2.isOn = robotStatus.Reset_box_arm_hand[1];
+            resetEArmExpandToggle.isOn = robotStatus.Reset_e_arm_expand;
+            resetEArmGetToggle.isOn = robotStatus.Reset_e_arm_get;
         });
     }
 

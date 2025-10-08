@@ -1,4 +1,5 @@
 {
+    "version": 1,
     "name": "GameInputs",
     "maps": [
         {
@@ -54,7 +55,7 @@
                     "name": "Down",
                     "type": "Button",
                     "id": "34d261a7-7900-428c-b225-de98f85af6e2",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -63,7 +64,7 @@
                     "name": "Left",
                     "type": "Button",
                     "id": "3af12b69-16f1-4085-ba23-934bea7bfbb5",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -81,7 +82,7 @@
                     "name": "L1",
                     "type": "Button",
                     "id": "8990dfc6-98fa-4e1b-ba5b-7cbdf5ea440f",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false

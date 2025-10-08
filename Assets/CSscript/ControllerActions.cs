@@ -105,6 +105,10 @@ public class ControllerActions : MonoBehaviour
         {
             nowpanel = PanelList.pylon_arm;
         }
+        else if(uiope.GetComponent<PanelContoroller>().getIsEArm())
+        {
+            nowpanel = PanelList.e_arm;
+        }
         if(connect)
         {
             Leftjoy.Setpos(_leftdsjoy);
@@ -121,29 +125,10 @@ public class ControllerActions : MonoBehaviour
     private void OnBatu(InputAction.CallbackContext context){Osu(ButtonList.Batu);}
     private void OnSikaku(InputAction.CallbackContext context){Osu(ButtonList.Sikaku);}
     private void OnSankaku(InputAction.CallbackContext context){Osu(ButtonList.Sankaku);}
-    private void OnUp(InputAction.CallbackContext context)
-    {
-        _upPressed = context.ReadValueAsButton();
-        if (context.performed) Osu(ButtonList.Up);
-    }
-
-    private void OnDown(InputAction.CallbackContext context)
-    {
-        _downPressed = context.ReadValueAsButton();
-        if (context.performed) Osu(ButtonList.Down);
-    }
-
-    private void OnLeft(InputAction.CallbackContext context)
-    {
-        _leftPressed = context.ReadValueAsButton();
-        if (context.performed) Osu(ButtonList.Left);
-    }
-
-    private void OnRight(InputAction.CallbackContext context)
-    {
-        _rightPressed = context.ReadValueAsButton();
-        if (context.performed) Osu(ButtonList.Right);
-    }
+    private void OnUp(InputAction.CallbackContext context){Osu(ButtonList.Up);}
+    private void OnDown(InputAction.CallbackContext context){Osu(ButtonList.Down);}
+    private void OnLeft(InputAction.CallbackContext context){Osu(ButtonList.Left);}
+    private void OnRight(InputAction.CallbackContext context){Osu(ButtonList.Right);}
     private void OnL1(InputAction.CallbackContext context){Osu(ButtonList.L1);}
     private void OnL2(InputAction.CallbackContext context){Osu(ButtonList.L2);}
     private void OnR1(InputAction.CallbackContext context){Osu(ButtonList.R1);}

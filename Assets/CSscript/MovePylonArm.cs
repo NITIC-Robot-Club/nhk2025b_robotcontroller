@@ -36,12 +36,12 @@ public class MovePylonArm : MonoBehaviour
 
     void Update()
     {
-        expand[0] = unitySubscriber.pylonArmExpand[0];
-        expand[1] = unitySubscriber.pylonArmExpand[1];
-        height[0] = unitySubscriber.pylonArmHeight[0];
-        height[1] = unitySubscriber.pylonArmHeight[1];
-        rpm[0] = unitySubscriber.pylonArmCollectRPM[0];
-        rpm[1] = unitySubscriber.pylonArmCollectRPM[1];
+        expand[0] = unitySubscriber.pylonArmState.Expand[0];
+        expand[1] = unitySubscriber.pylonArmState.Expand[1];
+        height[0] = unitySubscriber.pylonArmState.Height[0];
+        height[1] = unitySubscriber.pylonArmState.Height[1];
+        rpm[0] = unitySubscriber.pylonArmState.Collect_rpm[0];
+        rpm[1] = unitySubscriber.pylonArmState.Collect_rpm[1];
         leftArmText.SetText($"Left Arm - \n  Height: {height[0]}\n  RPM: {rpm[0]}");
         rightArmText.SetText($"Right Arm - \n  Height: {height[1]}\n  RPM: {rpm[1]}");
         expandText.SetText($"Expand - \n  Left: {expand[0]} \n  Right: {expand[1]}");

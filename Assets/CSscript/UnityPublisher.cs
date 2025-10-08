@@ -93,24 +93,31 @@ public class UnityPublisher : MonoBehaviour
     //
     [SerializeField] private Button slowToggle;
     private bool isSlow = false;
+    [SerializeField] private float slowAccelLimit = 1.1f;
+    private float lastVX = 0f;
+    private float lastVY = 0f;
+    private float lastTime = 0f;
 
     // Publish Chassis Arrow Value
+    private HoldButtonAction holdButtonAction;
+    private IEnumerator publishArrowButtonHold;
+    private IEnumerator publishArrowButtonOnClick;
+    private float verticalValue = 0.0f;
+    private float horizontalValue = 0.0f;
     [SerializeField] private Button forwardButton;
     [SerializeField] private Button backwardButton;
     [SerializeField] private Button leftButton;
     [SerializeField] private Button rightButton;
-    [NonSerialized] public float xyJoyVerticalValue = 0.0f;
-    [NonSerialized] public float xyJoyHorizontalValue = 0.0f;
-
     private bool isForwardPressed = false;
     private bool isBackwardPressed = false;
     private bool isLeftPressed = false;
     private bool isRightPressed = false;
-    private IEnumerator arrowButtonRoutine;
 
     void Start()
     {
+        holdButtonAction = uiope.GetComponent<HoldButtonAction>();
         TryGetComponent(out ros2Unity);
+
         joy_routine = JoyAsync();
         statusRoutine = publishStatus();
         commandRoutine = publishCommandReady();
@@ -118,7 +125,7 @@ public class UnityPublisher : MonoBehaviour
         conveyorRoutine = publishConveyor();
         pylonArmRoutine = publishPylonArm();
         eArmRoutine = publishEArm();
-        arrowButtonRoutine = publishArrowButtonInput();
+
         automateReadyButton.onClick.AddListener(() => automateReadyButtonClicked());
         pauseButton.onClick.AddListener( () => pauseButtonClicked());
         continueButton.onClick.AddListener( () => continueButtonClicked());
@@ -126,11 +133,8 @@ public class UnityPublisher : MonoBehaviour
         wingResetButton.onClick.AddListener( () => wingResetButtonClicked());
         fieldRoutine = publishFieldStatus();
 
-        // 長押し検出用のEventTriggerを追加
-        AddButtonHoldListener(forwardButton, () => isForwardPressed = true, () => isForwardPressed = false);
-        AddButtonHoldListener(backwardButton, () => isBackwardPressed = true, () => isBackwardPressed = false);
-        AddButtonHoldListener(leftButton, () => isLeftPressed = true, () => isLeftPressed = false);
-        AddButtonHoldListener(rightButton, () => isRightPressed = true, () => isRightPressed = false);
+        // クリックは値をセットするだけ（送信は JoyAsync に統合）
+        slowToggle.onClick.AddListener(() => isSlow = !isSlow);
 
         StartCoroutine(joy_routine);
         StartCoroutine(statusRoutine);
@@ -140,8 +144,30 @@ public class UnityPublisher : MonoBehaviour
         StartCoroutine(pylonArmRoutine);
         StartCoroutine(fieldRoutine);
         StartCoroutine(eArmRoutine);
-        StartCoroutine(arrowButtonRoutine);
-        slowToggle.onClick.AddListener(() => isSlow = !isSlow);
+
+        // --- ここでUIの押下イベント登録（長押し含む） ---
+        AddEvent(forwardButton.gameObject, EventTriggerType.PointerDown, (_) => isForwardPressed = true);
+        AddEvent(forwardButton.gameObject, EventTriggerType.PointerUp, (_) => isForwardPressed = false);
+        AddEvent(backwardButton.gameObject, EventTriggerType.PointerDown, (_) => isBackwardPressed = true);
+        AddEvent(backwardButton.gameObject, EventTriggerType.PointerUp, (_) => isBackwardPressed = false);
+        AddEvent(leftButton.gameObject, EventTriggerType.PointerDown, (_) => isLeftPressed = true);
+        AddEvent(leftButton.gameObject, EventTriggerType.PointerUp, (_) => isLeftPressed = false);
+        AddEvent(rightButton.gameObject, EventTriggerType.PointerDown, (_) => isRightPressed = true);
+        AddEvent(rightButton.gameObject, EventTriggerType.PointerUp, (_) => isRightPressed = false);
+
+        forwardButton.onClick.AddListener(() => verticalValue = 1.0f);
+        backwardButton.onClick.AddListener(() => verticalValue = -1.0f);
+        leftButton.onClick.AddListener(() => horizontalValue = 1.0f);
+        rightButton.onClick.AddListener(() => horizontalValue = -1.0f);
+    }
+
+    private void AddEvent(GameObject obj, EventTriggerType type, UnityEngine.Events.UnityAction<BaseEventData> action)
+    {
+        EventTrigger trigger = obj.GetComponent<EventTrigger>();
+        if (trigger == null) trigger = obj.AddComponent<EventTrigger>();
+        var entry = new EventTrigger.Entry { eventID = type };
+        entry.callback.AddListener(action);
+        trigger.triggers.Add(entry);
     }
 
     void Update()
@@ -172,27 +198,57 @@ public class UnityPublisher : MonoBehaviour
         {
             if (!is_auto && joy_pub != null)
             {
+                float baseVX = (XYJoy != null) ? XYJoy.Vertical * (isSlow ? 1.0f : 2.0f) : 0f;
+                float baseVY = (XYJoy != null) ? -XYJoy.Horizontal * (isSlow ? 1.0f : 2.0f) : 0f;
+                float targetWZ = (ZJoy != null) ? (-ZJoy.Horizontal * Mathf.PI * (isSlow ? (1 / 1.5f) : 1f)) : 0f;
+
+                bool chassis = uiope != null && uiope.GetComponent<PanelContoroller>().getIsChassis();
+
+                float clickVX = chassis ? verticalValue * 2.0f : 0f;
+                float clickVY = chassis ? horizontalValue * 2.0f : 0f;
+
+                float holdVX = 0f, holdVY = 0f;
+                if (chassis)
+                {
+                    if (isForwardPressed) holdVX += 2.0f;
+                    if (isBackwardPressed) holdVX -= 2.0f;
+                    if (isLeftPressed) holdVY += 2.0f;
+                    if (isRightPressed) holdVY -= 2.0f;
+                }
+
+                float targetVX = baseVX + clickVX + holdVX;
+                float targetVY = baseVY + clickVY + holdVY;
+
+                float outVX = targetVX;
+                float outVY = targetVY;
+                float now = Time.realtimeSinceStartup;
+                float dt = (lastTime > 0f) ? Mathf.Max(0f, now - lastTime) : pub_hz;
+
+                if (isSlow)
+                {
+                    float maxDelta = slowAccelLimit * Mathf.Max(0.001f, dt);
+                    outVX = Mathf.MoveTowards(lastVX, targetVX, maxDelta);
+                    outVY = Mathf.MoveTowards(lastVY, targetVY, maxDelta);
+                }
+
                 ROS2Clock clock = new ROS2Clock();
                 TS sendtwist = new TS
                 {
                     Twist = new geometry_msgs.msg.Twist(),
                     Header = new std_msgs.msg.Header()
                 };
-                if (isSlow)
-                {
-                    sendtwist.Twist.Linear.X = XYJoy.Vertical;
-                    sendtwist.Twist.Linear.Y = -XYJoy.Horizontal;
-                    sendtwist.Twist.Angular.Z = -ZJoy.Horizontal * Mathf.PI / 1.5f;
-                }
-                else
-                {
-                    sendtwist.Twist.Linear.X = XYJoy.Vertical * 2.0f;
-                    sendtwist.Twist.Linear.Y = -XYJoy.Horizontal * 2.0f;
-                    sendtwist.Twist.Angular.Z = -ZJoy.Horizontal * Mathf.PI;
-                }
+                sendtwist.Twist.Linear.X = outVX;
+                sendtwist.Twist.Linear.Y = outVY;
+                sendtwist.Twist.Angular.Z = targetWZ;
                 clock.UpdateROSClockTime(sendtwist.Header.Stamp);
                 sendtwist.Header.Frame_id = "base_link";
                 joy_pub.Publish(sendtwist);
+
+                verticalValue = 0.0f;
+                horizontalValue = 0.0f;
+                lastVX = outVX;
+                lastVY = outVY;
+                lastTime = now;
             }
             yield return new WaitForSeconds(pub_hz);
         }
@@ -361,75 +417,6 @@ public class UnityPublisher : MonoBehaviour
                 eArm_msg.Expand = eArmExpandSlider.value * Mathf.Deg2Rad;
                 eArm_msg.Get = eArmGetSlider.value;
                 eArm_pub.Publish(eArm_msg);
-            }
-            yield return new WaitForSeconds(pub_hz);
-        }
-    }
-
-    private void AddButtonHoldListener(Button button, System.Action onPressed, System.Action onReleased)
-    {
-        EventTrigger trigger = button.gameObject.GetComponent<EventTrigger>();
-        if (trigger == null)
-        {
-            trigger = button.gameObject.AddComponent<EventTrigger>();
-        }
-
-        EventTrigger.Entry entryDown = new EventTrigger.Entry();
-        entryDown.eventID = EventTriggerType.PointerDown;
-        entryDown.callback.AddListener((data) => { onPressed?.Invoke(); });
-        trigger.triggers.Add(entryDown);
-
-        EventTrigger.Entry entryUp = new EventTrigger.Entry();
-        entryUp.eventID = EventTriggerType.PointerUp;
-        entryUp.callback.AddListener((data) => { onReleased?.Invoke(); });
-        trigger.triggers.Add(entryUp);
-    }
-
-    IEnumerator publishArrowButtonInput()
-    {
-        while (true)
-        {
-            if (!is_auto && joy_pub != null)
-            {
-                float verticalValue = 0f;
-                float horizontalValue = 0f;
-
-                if (isForwardPressed) verticalValue += 0.5f;
-                if (isBackwardPressed) verticalValue -= 0.5f;
-                if (isLeftPressed) horizontalValue += 0.5f;
-                if (isRightPressed) horizontalValue -= 0.5f;
-
-                if (controllerActions != null)
-                {
-                    var controller = controllerActions.GetComponent<ControllerActions>();
-                    if (controller != null)
-                    {
-                        if (controller.GetDpadUp()) verticalValue += 0.5f;
-                        if (controller.GetDpadDown()) verticalValue -= 0.5f;
-                        if (controller.GetDpadLeft()) horizontalValue += 0.5f;
-                        if (controller.GetDpadRight()) horizontalValue -= 0.5f;
-                    }
-                }
-                if (Mathf.Abs(verticalValue) > 0.01f || Mathf.Abs(horizontalValue) > 0.01f)
-                {
-                    
-                    ROS2Clock clock = new ROS2Clock();
-                    TS sendtwist = new TS
-                    {
-                        Twist = new geometry_msgs.msg.Twist(),
-                        Header = new std_msgs.msg.Header()
-                    };
-
-                    sendtwist.Twist.Linear.X = verticalValue;
-                    sendtwist.Twist.Linear.Y = horizontalValue;
-                    sendtwist.Twist.Angular.Z = 0.0f;
-
-                    clock.UpdateROSClockTime(sendtwist.Header.Stamp);
-                    sendtwist.Header.Frame_id = "base_link";
-                    joy_pub.Publish(sendtwist);
-                    verticalValue = 0f;
-                    horizontalValue = 0f;
-                }
             }
             yield return new WaitForSeconds(pub_hz);
         }
