@@ -257,7 +257,7 @@ public class UnitySubscriber : MonoBehaviour
             }
         }
 
-        isRed = ogIsRed;
+        isRed = unityPublisher.fieldToggle.GetisAwake();
 
         //Visualize Robot/Goal/Lookahead Positions
         if (!isRed)
@@ -268,6 +268,12 @@ public class UnitySubscriber : MonoBehaviour
             goalRectTransform.anchorMax = new Vector2(1, 1);
             robotRectTransform.anchorMin = new Vector2(1, 1);
             robotRectTransform.anchorMax = new Vector2(1, 1);
+            lookaheadRectTransform.anchoredPosition = new Vector3(-(float)lookaheadPose.Pose.Position.X * m2pixY, -Mathf.Abs((float)lookaheadPose.Pose.Position.Y) * m2pixX, 0f);
+            lookahead.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, (float)lookaheadPose.Pose.Orientation.Z, (float)lookaheadPose.Pose.Orientation.W);
+            goalRectTransform.anchoredPosition = new Vector3(-(float)goalPose.Pose.Position.X * m2pixY, -Mathf.Abs((float)goalPose.Pose.Position.Y) * m2pixX, 0f);
+            goal.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, (float)goalPose.Pose.Orientation.Z, (float)goalPose.Pose.Orientation.W);
+            robotRectTransform.anchoredPosition = new Vector3(-(float)currentPose.Pose.Position.X * m2pixY, -Mathf.Abs((float)currentPose.Pose.Position.Y) * m2pixX, 0f);
+            robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, (float)currentPose.Pose.Orientation.Z, (float)currentPose.Pose.Orientation.W);
         }
         else
         {
@@ -277,25 +283,14 @@ public class UnitySubscriber : MonoBehaviour
             goalRectTransform.anchorMax = new Vector2(1, 0);
             robotRectTransform.anchorMin = new Vector2(1, 0);
             robotRectTransform.anchorMax = new Vector2(1, 0);
-        }
-        if (!isRed)
-        {
-            lookaheadRectTransform.anchoredPosition = new Vector3(-(float)lookaheadPose.Pose.Position.X * m2pixY, -(float)lookaheadPose.Pose.Position.Y * m2pixX, 0f);
+            lookaheadRectTransform.anchoredPosition = new Vector3(-(float)lookaheadPose.Pose.Position.X * m2pixY, Mathf.Abs((float)lookaheadPose.Pose.Position.Y) * m2pixX, 0f);
             lookahead.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, (float)lookaheadPose.Pose.Orientation.Z, (float)lookaheadPose.Pose.Orientation.W);
-            goalRectTransform.anchoredPosition = new Vector3(-(float)goalPose.Pose.Position.X * m2pixY, -(float)goalPose.Pose.Position.Y * m2pixX, 0f);
+            goalRectTransform.anchoredPosition = new Vector3(-(float)goalPose.Pose.Position.X * m2pixY, Mathf.Abs((float)goalPose.Pose.Position.Y) * m2pixX, 0f);
             goal.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, (float)goalPose.Pose.Orientation.Z, (float)goalPose.Pose.Orientation.W);
-            robotRectTransform.anchoredPosition = new Vector3(-(float)currentPose.Pose.Position.X * m2pixY, -(float)currentPose.Pose.Position.Y * m2pixX, 0f);
+            robotRectTransform.anchoredPosition = new Vector3(-(float)currentPose.Pose.Position.X * m2pixY, Mathf.Abs((float)currentPose.Pose.Position.Y) * m2pixX, 0f);
             robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, (float)currentPose.Pose.Orientation.Z, (float)currentPose.Pose.Orientation.W);
         }
-        else
-        {
-            lookaheadRectTransform.anchoredPosition = new Vector3(-(float)lookaheadPose.Pose.Position.X * m2pixY, (float)lookaheadPose.Pose.Position.Y * m2pixX, 0f);
-            lookahead.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, -(float)lookaheadPose.Pose.Orientation.Z, (float)lookaheadPose.Pose.Orientation.W);
-            goalRectTransform.anchoredPosition = new Vector3(-(float)goalPose.Pose.Position.X * m2pixY, (float)goalPose.Pose.Position.Y * m2pixX, 0f);
-            goal.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, -(float)goalPose.Pose.Orientation.Z, (float)goalPose.Pose.Orientation.W);
-            robotRectTransform.anchoredPosition = new Vector3(-(float)currentPose.Pose.Position.X * m2pixY, (float)currentPose.Pose.Position.Y * m2pixX, 0f);
-            robot.transform.rotation = Quaternion.Euler(0f, 0f, 90f) * new Quaternion(0f, 0f, -(float)currentPose.Pose.Orientation.Z, (float)currentPose.Pose.Orientation.W);
-        }
+        
 
         //Visualize Path
         if(subscribedPath != null && subscribedPath.Poses != null && subscribedPath.Poses.Length > 0)

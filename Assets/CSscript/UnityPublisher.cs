@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using ROS2;
 using topicSt = std_msgs.msg.String;
@@ -16,6 +17,7 @@ using Cn = nhk2025b_msgs.msg.Conveyor;
 using Pl = nhk2025b_msgs.msg.PylonArm;
 using EA = nhk2025b_msgs.msg.EArm;
 using TMPro;
+
 public class UnityPublisher : MonoBehaviour
 {
     [SerializeField] private GameObject controllerActions;
@@ -79,7 +81,7 @@ public class UnityPublisher : MonoBehaviour
     [SerializeField] private Slider pylonArmExpandSlider2;
 
     //Publish Field Status
-    [SerializeField] private Toggle fieldToggle;
+    [SerializeField] public Toggle fieldToggle;
     private IPublisher<Bool> field_pub;
     private IEnumerator fieldRoutine;
     private bool isRed = true;
@@ -90,7 +92,6 @@ public class UnityPublisher : MonoBehaviour
     [SerializeField] private Slider eArmGetSlider;
     [SerializeField] private Slider eArmExpandSlider;
 
-    //
     [SerializeField] private Button slowToggle;
     private bool isSlow = false;
     [SerializeField] private float slowAccelLimit = 1.1f;
@@ -99,23 +100,59 @@ public class UnityPublisher : MonoBehaviour
     private float lastTime = 0f;
 
     // Publish Chassis Arrow Value
-    private HoldButtonAction holdButtonAction;
-    private IEnumerator publishArrowButtonHold;
-    private IEnumerator publishArrowButtonOnClick;
     private float verticalValue = 0.0f;
     private float horizontalValue = 0.0f;
     [SerializeField] private Button forwardButton;
     [SerializeField] private Button backwardButton;
     [SerializeField] private Button leftButton;
     [SerializeField] private Button rightButton;
+    // [SerializeField] private InputActionReference _forwardHold;
+    // [SerializeField] private InputActionReference _backHold;
+    // [SerializeField] private InputActionReference _leftHold;
+    // [SerializeField] private InputActionReference _rightHold;
+    private bool isfHold = false;
+    private bool isbHold = false;
+    private bool islHold = false;
+    private bool isrHold = false;
     private bool isForwardPressed = false;
     private bool isBackwardPressed = false;
     private bool isLeftPressed = false;
     private bool isRightPressed = false;
 
+    // void Awake()
+    // {
+    //     if (_forwardHold != null)
+    //     {
+    //         _forwardHold.action.started += OnfTap;
+    //         _forwardHold.action.performed += OnfHold;
+    //         _forwardHold.action.canceled += OfffHold;
+    //         _forwardHold.action.Enable();
+    //     }
+    //     if (_backHold != null)
+    //     {
+    //         _backHold.action.started += OnbTap;
+    //         _backHold.action.performed += OnbHold;
+    //         _backHold.action.canceled += OffbHold;
+    //         _backHold.action.Enable();
+    //     }
+    //     if (_leftHold != null)
+    //     {
+    //         _leftHold.action.started += OnlTap;
+    //         _leftHold.action.performed += OnlHold;
+    //         _leftHold.action.canceled += OfflHold;
+    //         _leftHold.action.Enable();
+    //     }
+    //     if (_rightHold != null)
+    //     {
+    //         _rightHold.action.started += OnrTap;
+    //         _rightHold.action.performed += OnrHold;
+    //         _rightHold.action.canceled += OffrHold;
+    //         _rightHold.action.Enable();
+    //     }
+    // }
+
     void Start()
     {
-        holdButtonAction = uiope.GetComponent<HoldButtonAction>();
         TryGetComponent(out ros2Unity);
 
         joy_routine = JoyAsync();
@@ -133,8 +170,37 @@ public class UnityPublisher : MonoBehaviour
         wingResetButton.onClick.AddListener( () => wingResetButtonClicked());
         fieldRoutine = publishFieldStatus();
 
-        // クリックは値をセットするだけ（送信は JoyAsync に統合）
         slowToggle.onClick.AddListener(() => isSlow = !isSlow);
+
+        // UI arrows: tap -> one-shot pulse, hold -> continuous ±2.0
+        if (forwardButton != null)
+        {
+            forwardButton.onClick.AddListener(OnForwardClick);
+            AddEvent(forwardButton.gameObject, EventTriggerType.PointerDown, _ => isForwardPressed = true);
+            AddEvent(forwardButton.gameObject, EventTriggerType.PointerUp, _ => isForwardPressed = false);
+            AddEvent(forwardButton.gameObject, EventTriggerType.PointerExit, _ => isForwardPressed = false);
+        }
+        if (backwardButton != null)
+        {
+            backwardButton.onClick.AddListener(OnBackwardClick);
+            AddEvent(backwardButton.gameObject, EventTriggerType.PointerDown, _ => isBackwardPressed = true);
+            AddEvent(backwardButton.gameObject, EventTriggerType.PointerUp, _ => isBackwardPressed = false);
+            AddEvent(backwardButton.gameObject, EventTriggerType.PointerExit, _ => isBackwardPressed = false);
+        }
+        if (leftButton != null)
+        {
+            leftButton.onClick.AddListener(OnLeftClick);
+            AddEvent(leftButton.gameObject, EventTriggerType.PointerDown, _ => isLeftPressed = true);
+            AddEvent(leftButton.gameObject, EventTriggerType.PointerUp, _ => isLeftPressed = false);
+            AddEvent(leftButton.gameObject, EventTriggerType.PointerExit, _ => isLeftPressed = false);
+        }
+        if (rightButton != null)
+        {
+            rightButton.onClick.AddListener(OnRightClick);
+            AddEvent(rightButton.gameObject, EventTriggerType.PointerDown, _ => isRightPressed = true);
+            AddEvent(rightButton.gameObject, EventTriggerType.PointerUp, _ => isRightPressed = false);
+            AddEvent(rightButton.gameObject, EventTriggerType.PointerExit, _ => isRightPressed = false);
+        }
 
         StartCoroutine(joy_routine);
         StartCoroutine(statusRoutine);
@@ -144,21 +210,6 @@ public class UnityPublisher : MonoBehaviour
         StartCoroutine(pylonArmRoutine);
         StartCoroutine(fieldRoutine);
         StartCoroutine(eArmRoutine);
-
-        // --- ここでUIの押下イベント登録（長押し含む） ---
-        AddEvent(forwardButton.gameObject, EventTriggerType.PointerDown, (_) => isForwardPressed = true);
-        AddEvent(forwardButton.gameObject, EventTriggerType.PointerUp, (_) => isForwardPressed = false);
-        AddEvent(backwardButton.gameObject, EventTriggerType.PointerDown, (_) => isBackwardPressed = true);
-        AddEvent(backwardButton.gameObject, EventTriggerType.PointerUp, (_) => isBackwardPressed = false);
-        AddEvent(leftButton.gameObject, EventTriggerType.PointerDown, (_) => isLeftPressed = true);
-        AddEvent(leftButton.gameObject, EventTriggerType.PointerUp, (_) => isLeftPressed = false);
-        AddEvent(rightButton.gameObject, EventTriggerType.PointerDown, (_) => isRightPressed = true);
-        AddEvent(rightButton.gameObject, EventTriggerType.PointerUp, (_) => isRightPressed = false);
-
-        forwardButton.onClick.AddListener(() => verticalValue = 1.0f);
-        backwardButton.onClick.AddListener(() => verticalValue = -1.0f);
-        leftButton.onClick.AddListener(() => horizontalValue = 1.0f);
-        rightButton.onClick.AddListener(() => horizontalValue = -1.0f);
     }
 
     private void AddEvent(GameObject obj, EventTriggerType type, UnityEngine.Events.UnityAction<BaseEventData> action)
@@ -196,41 +247,58 @@ public class UnityPublisher : MonoBehaviour
     {
         while (true)
         {
-            if (!is_auto && joy_pub != null)
+            if (joy_pub != null)
             {
                 float baseVX = (XYJoy != null) ? XYJoy.Vertical * (isSlow ? 1.0f : 2.0f) : 0f;
                 float baseVY = (XYJoy != null) ? -XYJoy.Horizontal * (isSlow ? 1.0f : 2.0f) : 0f;
                 float targetWZ = (ZJoy != null) ? (-ZJoy.Horizontal * Mathf.PI * (isSlow ? (1 / 1.5f) : 1f)) : 0f;
 
-                bool chassis = uiope != null && uiope.GetComponent<PanelContoroller>().getIsChassis();
-
+                bool chassis = uiope.GetComponent<PanelContoroller>().getIsChassis();
                 float clickVX = chassis ? verticalValue * 2.0f : 0f;
                 float clickVY = chassis ? horizontalValue * 2.0f : 0f;
 
                 float holdVX = 0f, holdVY = 0f;
+                bool anyHold = false;
+
                 if (chassis)
                 {
-                    if (isForwardPressed) holdVX += 2.0f;
-                    if (isBackwardPressed) holdVX -= 2.0f;
-                    if (isLeftPressed) holdVY += 2.0f;
-                    if (isRightPressed) holdVY -= 2.0f;
+                    if (isfHold) { holdVX = 2.0f; anyHold = true; }
+                    else if (isbHold) { holdVX = -2.0f; anyHold = true; }
+
+                    if (islHold) { holdVY = 2.0f; anyHold = true; }
+                    else if (isrHold) { holdVY = -2.0f; anyHold = true; }
+                    if (!isfHold && !isbHold)
+                    {
+                        if (isForwardPressed) { holdVX = 2.0f; anyHold = true; }
+                        else if (isBackwardPressed) { holdVX = -2.0f; anyHold = true; }
+                    }
+                    if (!islHold && !isrHold)
+                    {
+                        if (isLeftPressed) { holdVY = 2.0f; anyHold = true; }
+                        else if (isRightPressed) { holdVY = -2.0f; anyHold = true; }
+                    }
                 }
-
-                float targetVX = baseVX + clickVX + holdVX;
-                float targetVY = baseVY + clickVY + holdVY;
-
+                float targetVX, targetVY;
+                if (anyHold)
+                {
+                    targetVX = holdVX;
+                    targetVY = holdVY;
+                }
+                else
+                {
+                    targetVX = baseVX + clickVX;
+                    targetVY = baseVY + clickVY;
+                }
                 float outVX = targetVX;
                 float outVY = targetVY;
                 float now = Time.realtimeSinceStartup;
                 float dt = (lastTime > 0f) ? Mathf.Max(0f, now - lastTime) : pub_hz;
-
-                if (isSlow)
+                if (isSlow && !anyHold)
                 {
                     float maxDelta = slowAccelLimit * Mathf.Max(0.001f, dt);
                     outVX = Mathf.MoveTowards(lastVX, targetVX, maxDelta);
                     outVY = Mathf.MoveTowards(lastVY, targetVY, maxDelta);
                 }
-
                 ROS2Clock clock = new ROS2Clock();
                 TS sendtwist = new TS
                 {
@@ -243,7 +311,6 @@ public class UnityPublisher : MonoBehaviour
                 clock.UpdateROSClockTime(sendtwist.Header.Stamp);
                 sendtwist.Header.Frame_id = "base_link";
                 joy_pub.Publish(sendtwist);
-
                 verticalValue = 0.0f;
                 horizontalValue = 0.0f;
                 lastVX = outVX;
@@ -421,4 +488,59 @@ public class UnityPublisher : MonoBehaviour
             yield return new WaitForSeconds(pub_hz);
         }
     }
+
+    // Controller tap (one-shot pulse)
+    // private void OnfTap(InputAction.CallbackContext context) { verticalValue = 1.0f; }
+    // private void OnbTap(InputAction.CallbackContext context) { verticalValue = -1.0f; }
+    // private void OnlTap(InputAction.CallbackContext context) { horizontalValue = 1.0f; }
+    // private void OnrTap(InputAction.CallbackContext context) { horizontalValue = -1.0f; }
+
+    // // Controller hold
+    // private void OnfHold(InputAction.CallbackContext context) { isfHold = true; }
+    // private void OfffHold(InputAction.CallbackContext context) { isfHold = false; }
+    // private void OnbHold(InputAction.CallbackContext context) { isbHold = true; }
+    // private void OffbHold(InputAction.CallbackContext context) { isbHold = false; }
+    // private void OnlHold(InputAction.CallbackContext context) { islHold = true; }
+    // private void OfflHold(InputAction.CallbackContext context) { islHold = false; }
+    // private void OnrHold(InputAction.CallbackContext context) { isrHold = true; }
+    // private void OffrHold(InputAction.CallbackContext context) { isrHold = false; }
+
+    // UI tap (one-shot pulse)
+    private void OnForwardClick() { verticalValue = 1.0f; }
+    private void OnBackwardClick() { verticalValue = -1.0f; }
+    private void OnLeftClick() { horizontalValue = 1.0f; }
+    private void OnRightClick() { horizontalValue = -1.0f; }
+
+    // private void OnDestroy()
+    // {
+    //     // InputAction の購読解除と Disable（多重登録予防）
+    //     if (_forwardHold != null)
+    //     {
+    //         _forwardHold.action.started -= OnfTap;
+    //         _forwardHold.action.performed -= OnfHold;
+    //         _forwardHold.action.canceled -= OfffHold;
+    //         _forwardHold.action.Disable();
+    //     }
+    //     if (_backHold != null)
+    //     {
+    //         _backHold.action.started -= OnbTap;
+    //         _backHold.action.performed -= OnbHold;
+    //         _backHold.action.canceled -= OffbHold;
+    //         _backHold.action.Disable();
+    //     }
+    //     if (_leftHold != null)
+    //     {
+    //         _leftHold.action.started -= OnlTap;
+    //         _leftHold.action.performed -= OnlHold;
+    //         _leftHold.action.canceled -= OfflHold;
+    //         _leftHold.action.Disable();
+    //     }
+    //     if (_rightHold != null)
+    //     {
+    //         _rightHold.action.started -= OnrTap;
+    //         _rightHold.action.performed -= OnrHold;
+    //         _rightHold.action.canceled -= OffrHold;
+    //         _rightHold.action.Disable();
+    //     }
+    // }
 }
