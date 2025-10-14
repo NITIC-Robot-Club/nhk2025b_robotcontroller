@@ -434,7 +434,7 @@
                 {
                     "name": "",
                     "id": "ea318f1c-cb72-47b3-a451-7bc5a7dd182f",
-                    "path": "<XboxOneGamepadAndroid>/rightShoulder",
+                    "path": "<Gamepad>/rightShoulder",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -445,7 +445,7 @@
                 {
                     "name": "",
                     "id": "92da74b3-5003-4e23-9364-0c1ec662de8c",
-                    "path": "<XboxOneGamepadAndroid>/leftShoulder",
+                    "path": "<Gamepad>/leftShoulder",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -456,7 +456,7 @@
                 {
                     "name": "",
                     "id": "65bab422-13bb-4ef6-8036-484903bc7e7b",
-                    "path": "<XboxOneGamepadAndroid>/leftTrigger",
+                    "path": "<Gamepad>/leftTrigger",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -467,7 +467,7 @@
                 {
                     "name": "",
                     "id": "33069a51-ecfd-4373-949a-2d27b3231aa7",
-                    "path": "<XInputController>/rightTrigger",
+                    "path": "<Gamepad>/rightTrigger",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

@@ -60,7 +60,6 @@ public class UnitySubscriber : MonoBehaviour
     private bool ogDirty = false;
     private const int ogWidthDefault = 1920;        // px
     private const int ogHeightDefault = 960;        // px
-    private bool ogIsRed = false;
     private bool isRed = false;
     private sbyte[] prevOgData = null;
     private int prevOgWidth = 0;
@@ -799,6 +798,7 @@ public class UnitySubscriber : MonoBehaviour
 
     public void panelTransition()
     {
+        Debug.Log("Panel Transition Triggered");
         boxArmExpandSlider1.value = boxArmCmd.Expand[0] * Mathf.Rad2Deg;
         boxArmExpandSlider2.value = boxArmCmd.Expand[1] * Mathf.Rad2Deg;
         boxArmHeightSlider1.value = boxArmCmd.Height[0] * 1000.0f;

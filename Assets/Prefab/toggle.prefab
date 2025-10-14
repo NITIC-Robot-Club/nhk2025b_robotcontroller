@@ -151,6 +151,8 @@ MonoBehaviour:
   backgroundImage: {fileID: 3673793847568178731}
   handle: {fileID: 8633616805217578026}
   onAwake: 0
+  ORIGINAL_TEXT_COLOR: {r: 1, g: 0, b: 0, a: 1}
+  TARGET_TEXT_COLOR: {r: 0, g: 0, b: 1, a: 1}
   targetToggle: {fileID: 6753692477957734827}
   displayText: {fileID: 2096069166977404561}
   originalText: 
@@ -295,7 +297,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: text
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8a89fa14b10d46a99122fd4f73fca9a2, type: 2}
   m_sharedMaterial: {fileID: 2140474, guid: 8a89fa14b10d46a99122fd4f73fca9a2, type: 2}

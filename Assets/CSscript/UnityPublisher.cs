@@ -98,6 +98,8 @@ public class UnityPublisher : MonoBehaviour
     private float lastVX = 0f;
     private float lastVY = 0f;
     private float lastTime = 0f;
+    [SerializeField] private float slowAngularAccelLimit = 2.0f; // rad/s^2 角速度用
+    private float lastWZ = 0f;
 
     // Publish Chassis Arrow Value
     private float verticalValue = 0.0f;
@@ -150,6 +152,7 @@ public class UnityPublisher : MonoBehaviour
     //         _rightHold.action.Enable();
     //     }
     // }
+    [SerializeField] private UnitySubscriber sub;
 
     void Start()
     {
@@ -291,6 +294,7 @@ public class UnityPublisher : MonoBehaviour
                 }
                 float outVX = targetVX;
                 float outVY = targetVY;
+                float outWZ = targetWZ;
                 float now = Time.realtimeSinceStartup;
                 float dt = (lastTime > 0f) ? Mathf.Max(0f, now - lastTime) : pub_hz;
                 if (isSlow && !anyHold)
@@ -298,6 +302,11 @@ public class UnityPublisher : MonoBehaviour
                     float maxDelta = slowAccelLimit * Mathf.Max(0.001f, dt);
                     outVX = Mathf.MoveTowards(lastVX, targetVX, maxDelta);
                     outVY = Mathf.MoveTowards(lastVY, targetVY, maxDelta);
+                }
+                if (isSlow)
+                {
+                    float maxDeltaW = slowAngularAccelLimit * Mathf.Max(0.001f, dt);
+                    outWZ = Mathf.MoveTowards(lastWZ, targetWZ, maxDeltaW);
                 }
                 ROS2Clock clock = new ROS2Clock();
                 TS sendtwist = new TS
@@ -307,7 +316,7 @@ public class UnityPublisher : MonoBehaviour
                 };
                 sendtwist.Twist.Linear.X = outVX;
                 sendtwist.Twist.Linear.Y = outVY;
-                sendtwist.Twist.Angular.Z = targetWZ;
+                sendtwist.Twist.Angular.Z = outWZ;
                 clock.UpdateROSClockTime(sendtwist.Header.Stamp);
                 sendtwist.Header.Frame_id = "base_link";
                 joy_pub.Publish(sendtwist);
@@ -315,6 +324,7 @@ public class UnityPublisher : MonoBehaviour
                 horizontalValue = 0.0f;
                 lastVX = outVX;
                 lastVY = outVY;
+                lastWZ = outWZ;
                 lastTime = now;
             }
             yield return new WaitForSeconds(pub_hz);
@@ -340,6 +350,11 @@ public class UnityPublisher : MonoBehaviour
 
     private void automateReadyButtonClicked()
     {
+        if (allowAutomate)
+        {
+            Debug.Log("Automate Ready Clicked to Auto -> Manual");
+            sub.panelTransition();
+        }
         allowAutomate = !allowAutomate;
         commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset_claw = false, Reset_wing = false });
     }
