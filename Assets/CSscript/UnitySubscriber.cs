@@ -799,21 +799,28 @@ public class UnitySubscriber : MonoBehaviour
     public void panelTransition()
     {
         Debug.Log("Panel Transition Triggered");
-        boxArmExpandSlider1.value = boxArmCmd.Expand[0] * Mathf.Rad2Deg;
-        boxArmExpandSlider2.value = boxArmCmd.Expand[1] * Mathf.Rad2Deg;
-        boxArmHeightSlider1.value = boxArmCmd.Height[0] * 1000.0f;
-        boxArmHeightSlider2.value = boxArmCmd.Height[1] * 1000.0f;
-        boxArmHandSlider1.value = boxArmCmd.Hand_position[0];
-        boxArmHandSlider2.value = boxArmCmd.Hand_position[1];
-        boxConveyorRpmSlider1.value = conveyorCmd.Conveyor_rpm[0];
-        boxConveyorRpmSlider2.value = conveyorCmd.Conveyor_rpm[1];
-        pylonArmHeightSlider1.value = pylonArmCmd.Height[0] * 1000.0f;
-        pylonArmHeightSlider2.value = pylonArmCmd.Height[1] * 1000.0f;
-        pylonArmCollectRpmSlider1.value = pylonArmCmd.Collect_rpm[0];
-        pylonArmCollectRpmSlider2.value = pylonArmCmd.Collect_rpm[1];
-        pylonArmExpandSlider1.value = pylonArmCmd.Expand[0] * Mathf.Rad2Deg;
-        pylonArmExpandSlider2.value = pylonArmCmd.Expand[1] * Mathf.Rad2Deg;
-        eArmGetSlider.value = earmCmd.Get * 1000.0f;
-        eArmExpandSlider.value = earmCmd.Expand * Mathf.Rad2Deg;
+        try 
+        {
+            boxArmExpandSlider1.value = boxArmCmd.Expand[0] * Mathf.Rad2Deg;
+            boxArmExpandSlider2.value = boxArmCmd.Expand[1] * Mathf.Rad2Deg;
+            boxArmHeightSlider1.value = boxArmCmd.Height[0] * 1000.0f;
+            boxArmHeightSlider2.value = boxArmCmd.Height[1] * 1000.0f;
+            boxArmHandSlider1.value = boxArmCmd.Hand_position[0] * 1000.0f;
+            boxArmHandSlider2.value = boxArmCmd.Hand_position[1] * 1000.0f;
+            boxConveyorRpmSlider1.value = conveyorCmd.Conveyor_rpm[0];
+            boxConveyorRpmSlider2.value = conveyorCmd.Conveyor_rpm[1];
+            pylonArmHeightSlider1.value = pylonArmCmd.Height[0] * 1000.0f;
+            pylonArmHeightSlider2.value = pylonArmCmd.Height[1] * 1000.0f;
+            pylonArmCollectRpmSlider1.value = pylonArmCmd.Collect_rpm[0];
+            pylonArmCollectRpmSlider2.value = pylonArmCmd.Collect_rpm[1];
+            pylonArmExpandSlider1.value = pylonArmCmd.Expand[0] * Mathf.Rad2Deg;
+            pylonArmExpandSlider2.value = pylonArmCmd.Expand[1] * Mathf.Rad2Deg;
+            eArmGetSlider.value = earmCmd.Get * 1000.0f;
+            eArmExpandSlider.value = earmCmd.Expand * Mathf.Rad2Deg;
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[UnitySubscriber] Exception in panelTransition(): {ex}");
+        };
     }
 }

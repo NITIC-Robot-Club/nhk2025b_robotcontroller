@@ -29,7 +29,6 @@ public class UnityPublisher : MonoBehaviour
     [System.NonSerialized] public Queue<twist> twistmsgs = new Queue<twist>();
     [System.NonSerialized] public Queue<Co> commandmsgs = new Queue<Co>();
     [SerializeField] private float pub_hz = 0.05f;
-    private bool is_auto;
 
     public FixedJoystick XYJoy;
     public FixedJoystick ZJoy;
@@ -153,6 +152,7 @@ public class UnityPublisher : MonoBehaviour
     //     }
     // }
     [SerializeField] private UnitySubscriber sub;
+    private bool isAutomateReady = false;
 
     void Start()
     {
@@ -228,8 +228,8 @@ public class UnityPublisher : MonoBehaviour
     {
         leftdsjoy = controllerActions.GetComponent<ControllerActions>().Getleftjoy();
         rightdsjoy = controllerActions.GetComponent<ControllerActions>().Getrightjoy();
-        is_auto = uiope.GetComponent<PanelContoroller>().getIsAuto();
-        if(is_auto) ResetJoystickInput();
+        isAutomateReady = automateReadyButton.GetComponent<Toggle>().GetisAwake();
+        if(isAutomateReady) ResetJoystickInput();
         if(ros2Unity.Ok()){
             if(ros2Node == null){
                 ros2Node = ros2Unity.CreateNode("robotcontroller_publisher");
@@ -339,7 +339,7 @@ public class UnityPublisher : MonoBehaviour
             {
                 Int32 status_msg = new Int32();
                 status_msg.Data = intQueue.Dequeue();
-                if (is_auto)
+                if (isAutomateReady)
                 {
                     status_pub.Publish(status_msg);
                 }
@@ -350,11 +350,6 @@ public class UnityPublisher : MonoBehaviour
 
     private void automateReadyButtonClicked()
     {
-        if (allowAutomate)
-        {
-            Debug.Log("Automate Ready Clicked to Auto -> Manual");
-            sub.panelTransition();
-        }
         allowAutomate = !allowAutomate;
         commandmsgs.Enqueue(new Co { Allow_automate = allowAutomate, Signal = signal, Reset_claw = false, Reset_wing = false });
     }
@@ -426,7 +421,7 @@ public class UnityPublisher : MonoBehaviour
     {
         while (true)
         {
-            if (!is_auto && boxArm_pub != null)
+            if (!isAutomateReady && boxArm_pub != null)
             {
                 Ba boxArm_msg = new Ba();
                 boxArm_msg.Height[0] = boxArmHeightSlider1.value / 1000.0f;
@@ -445,7 +440,7 @@ public class UnityPublisher : MonoBehaviour
     {
         while (true)
         {
-            if (!is_auto && conveyor_pub != null)
+            if (!isAutomateReady && conveyor_pub != null)
             {
                 Cn conveyor_msg = new Cn();
                 conveyor_msg.Conveyor_rpm[0] = boxConveyorRpmSlider1.value;
@@ -460,7 +455,7 @@ public class UnityPublisher : MonoBehaviour
     {
         while (true)
         {
-            if (!is_auto && pylonArm_pub != null)
+            if (!isAutomateReady && pylonArm_pub != null)
             {
                 Pl pylonArm_msg = new Pl();
                 pylonArm_msg.Height[0] = pylonArmHeightSlider1.value / 1000.0f;
@@ -493,7 +488,7 @@ public class UnityPublisher : MonoBehaviour
     {
         while (true)
         {
-            if (!is_auto && eArm_pub != null)
+            if (!isAutomateReady && eArm_pub != null)
             {
                 EA eArm_msg = new EA();
                 eArm_msg.Expand = eArmExpandSlider.value * Mathf.Deg2Rad;

@@ -22,8 +22,8 @@ public class PanelContoroller : MonoBehaviour
     [SerializeField] private Button[] pylonArmButtons;
     [SerializeField] private Button[] eArmButtons;
     private bool manualSwitcherState = true;
-    private bool is_autoPanel = true;
-    private bool isChassisPanel = false;
+    private bool is_autoPanel = false;
+    private bool isChassisPanel = true;
     private bool isConveyorPanel = false;
     private bool isBoxArmPanel = false;
     private bool isPylonArmPanel = false;

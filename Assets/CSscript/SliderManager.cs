@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -11,15 +10,15 @@ public class SliderManager : MonoBehaviour
     [SerializeField] private string unit = "/unit_name";
     [SerializeField, Range(0, 5)] private int decimalDigits = 2;
 
-    private int[] missingCanId = new int[0];
-
-    void Start() {
+    void Start()
+    {
         slider = GetComponent<Slider>();
-        slider.onValueChanged.AddListener(delegate { Method(); });
+        slider.onValueChanged.AddListener(_ => Method());
         Method();
     }
-    
-    public void Method() {
+
+    public void Method()
+    {
         string format = "F" + decimalDigits.ToString();
         sliderText.text = $"{slider.value.ToString(format)}{unit}";
     }
